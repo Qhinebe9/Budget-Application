@@ -61,9 +61,6 @@ public class Transaction extends Canvas implements Navigation, Design {
 		 btnback.setStyle(Design.ButtonStyle());
 		 
 		 
-         //handling profile picture display
-		 Image imgprofile = new Image("file:/Budget_Application/data/imgbg2.jpg");
-		 ImageView imgprofileview= new ImageView(imgprofile);
          Label lblchoice= new Label("What would you like to do?");
          lblchoice.setFont(Design.H2Font());
          Design.Layout(lblchoice, 180, 70, roothome);
@@ -88,17 +85,15 @@ public class Transaction extends Canvas implements Navigation, Design {
 			  }
          ComboBox<String> cmbitems= new ComboBox<String>(strItems);
          cmbitems.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 15px; -fx-font: 18px \"Comic Sans Ms\";");
-         cmbitems.setLayoutX(140);
-         cmbitems.setLayoutY(120);
          cmbitems.setPrefSize(280, 40);
          cmbitems.setPromptText("Select Budget Item");
+         Design.Layout(cmbitems, 140, 120, roothome);
          
          
          //Amount text field
          TextField txtamount= new TextField();
          txtamount.setText("Amount");
-         txtamount.setLayoutX(210);
-         txtamount.setLayoutY(180);
+         Design.Layout(txtamount, 210, 180, roothome);
          txtamount.setOnMouseClicked(e->
          {
         	txtamount.clear(); 
@@ -108,13 +103,13 @@ public class Transaction extends Canvas implements Navigation, Design {
          //Add button
          btnadd= new Button("Add");
          btnadd.setPrefSize(230, 30);
-         btnadd.setLayoutX(160);
-         btnadd.setLayoutY(250);
-         
-         
+         Design.Layout(btnadd, 160, 250, roothome);
          //Transacting button styling
          btnadd.setFont(Design.ButtonFont());
          btnadd.setStyle(Design.ButtonStyle());
+         
+         
+         //btnadd processing
          btnadd.setOnAction(e->
          {
         	 Pattern netpaypat= Pattern.compile("\\d*[.,]?\\d{0,2}");
@@ -133,7 +128,7 @@ public class Transaction extends Canvas implements Navigation, Design {
 						  double amount=rs.getDouble("actualAmount")+dbladd;
 						  stm.execute("Update items set actualAmount='"+amount+"' where iditems='"+itemid+"'");
 						  stm.execute("Insert Into transaction (amount,date,itemID) Values ('"+dbladd+"','"+java.time.LocalDate.now()+"','"+itemid+"')"); 
-						  Design.AlertMsg(1,"Success","Added", "You have successfully made an addition to "+name+". You have R"+Double.toString(amount)+" remaining in this budget.");
+						  Design.AlertMsg(1,"Success","Added", "You have successfully made an addition to "+name+". You have R"+Double.toString(amount)+" in this budget.");
 					  }
 					  stm.close();
 				 } catch (SQLException e1) {
@@ -149,11 +144,12 @@ public class Transaction extends Canvas implements Navigation, Design {
          btndeduct.setPrefSize(230, 30);
          btndeduct.setLayoutX(160);
          btndeduct.setLayoutY(330);
-         
-         
-         //Transacting button styling
+         Design.Layout(btndeduct, 160, 330, roothome);
          btndeduct.setFont(Design.ButtonFont());
          btndeduct.setStyle(Design.ButtonStyle());
+         
+         
+         //btndeduct processing
          btndeduct.setOnAction(e->
          {
         	 Pattern netpaypat= Pattern.compile("\\d*[.,]?\\d{0,2}");
@@ -187,7 +183,7 @@ public class Transaction extends Canvas implements Navigation, Design {
 						e1.printStackTrace();
 					}
 			 }
-         });
+           });
          
          
          //btnback processing
@@ -197,14 +193,9 @@ public class Transaction extends Canvas implements Navigation, Design {
         
          
          //Adding components to root node
-         roothome.getChildren().add(imgprofileview);
 		 roothome.getStyleClass().add("color-palette");
-		 roothome.getChildren().add(btndeduct);
-		 roothome.getChildren().add(btnadd);
-		 roothome.getChildren().add(btnback);
-		 roothome.getChildren().add(cmbitems);
-		 roothome.getChildren().add(txtamount);
-		 scene= new Scene(roothome,600,800);
+		 scene= new Scene(roothome);
+		 
 		 
 		 //colour of the scene
 		 scene.setFill(new LinearGradient(0, 0, 1, 1, true,CycleMethod.NO_CYCLE,new Stop(0, Color.web("#ff7f50")),new Stop(1, Color.web("#6a5acd"))));

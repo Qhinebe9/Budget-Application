@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.Scanner;
 
 import javafx.application.Application;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 public class Main extends Application {
@@ -37,6 +38,11 @@ public class Main extends Application {
 	public void start(Stage ps) throws Exception {
 		// TODO Auto-generated method stub
 		this.ps=ps;
+		double screenWidth = Screen.getPrimary().getVisualBounds().getWidth();
+        double screenHeight = Screen.getPrimary().getVisualBounds().getHeight();
+        // Set the stage size to match the screen size
+        ps.setWidth(screenWidth);
+        ps.setHeight(screenHeight);
 		
 	 	
 		File file= new File("docs/Plan.txt");

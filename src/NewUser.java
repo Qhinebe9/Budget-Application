@@ -58,6 +58,9 @@ public class NewUser extends Main implements Navigation {
 	    	
 	    	//rootnode
 			 Group roothome= new Group();
+			 
+			 
+			 //button declaration
 			 btnaddexpense= new Button("Add Expense");
 			 btnaddincome= new Button("Add Income");
 			 btnaddDetails= new Button("Add Details");
@@ -65,24 +68,15 @@ public class NewUser extends Main implements Navigation {
 			 btndone= new Button("Done");
 			 
 			 
-			 
-			 //
-			 //Fonts
-			 //
-			 Font font= new Font(20);
-	         font= Font.font("Comic Sans Ms",FontWeight.BOLD,30);
-	         
 			 //Welcome and quote
 			 Label lblwelcome= new Label("Welcome Budgeteer!");
-			 lblwelcome.setFont(font);
-			 lblwelcome.setLayoutX(100);
-			 lblwelcome.setLayoutY(30);
+			 lblwelcome.setFont(Design.HeadingFont());
+			 Design.Layout(lblwelcome, 100, 30, roothome);
 			 Label lblquote= new Label("'The budget is not just a collection of numbers, but an expression of our values and aspirations.'");
-	         font= Font.font("Comic Sans Ms",FontWeight.BOLD,12);
-	         lblquote.setFont(font);
-	         lblquote.setLayoutX(20);
-	         lblquote.setLayoutY(100);
-	         font= Font.font("Comic Sans Ms",FontWeight.BOLD,15);
+	         lblquote.setFont(Design.ButtonFont());
+	         Design.Layout(lblquote, 20, 100, roothome);
+	         
+	         
 			 //
 			 //getting budget info setup
 			 //
@@ -126,28 +120,36 @@ public class NewUser extends Main implements Navigation {
 				 * 
 				 * }); txtnetpay.setLayoutX(280); txtnetpay.setLayoutY(220);
 				 */
-			 //fonts of buttons
-			 btnaddDetails.setFont(font);
-			 btnaddexpense.setFont(font);
-			 btnsavings.setFont(font);
-			 btnaddincome.setFont(font);
+	         
+	         
+			 //fonts and styling of buttons
+			 btnaddDetails.setFont(Design.ButtonFont());
+			 btnaddDetails.setStyle(Design.ButtonStyle());
+			 btnaddexpense.setFont(Design.ButtonFont());
+			 btnaddexpense.setStyle(Design.ButtonStyle());
+			 btnsavings.setFont(Design.ButtonFont());
+			 btnsavings.setStyle(Design.ButtonStyle());
+			 btnaddincome.setFont(Design.ButtonFont());
+			 btnaddincome.setStyle(Design.ButtonStyle());
+			 
+			 
 			 //positions of buttons
-			 btnaddexpense.setLayoutX(20);
-			 btnaddexpense.setLayoutY(420);
-			 btnaddincome.setLayoutX(280);
-			 btnaddincome.setLayoutY(420);
-			 btnaddDetails.setLayoutX(180);
-			 btnaddDetails.setLayoutY(250);
+			 Design.Layout(btnaddexpense, 20, 420, roothome);
+			 Design.Layout(btnaddincome, 280, 420, roothome);
+			 Design.Layout(btnaddDetails, 180, 250, roothome);
 			 btnaddDetails.setStyle("-fx-background-radius: 15px;");
+			 
+			 
 			 //expenses setup
 			 Label lblexpense= new Label("Add an expense");
-			 lblexpense.setFont(font);
-			 lblexpense.setLayoutX(20);
-			 lblexpense.setLayoutY(300);
+			 Design.Layout(lblexpense, 20, 300, roothome);
 			 Label lblexpmsg= new Label();
 			 lblexpmsg.setStyle(" -fx-background-color: white;");
 			 lblexpmsg.setLayoutX(20);
 			 lblexpmsg.setLayoutY(460);
+			 Design.Layout(lblexpmsg, 20, 460, roothome);
+			 
+			 
 			 //combobox for expenses
 			 ObservableList<String> expitems=FXCollections.observableArrayList("Tuition Fees","Textbooks and Stationery","Accomodation","Food","Transportation","Medical Expenses","Phone and Internet","Clothing","Personal Care","Leisure","Loans", "Misc");
 			 ComboBox<String> expcombo= new ComboBox<>(expitems);
@@ -168,6 +170,8 @@ public class NewUser extends Main implements Navigation {
 				 lblexpmsg.setVisible(false);
 				 
 			 });
+			 
+			 
 			 //filteredList
 			 txtcombo.textProperty().addListener((observable,oldValue,newValue)->
 			 {
@@ -186,15 +190,19 @@ public class NewUser extends Main implements Navigation {
 				 }
 			 });
 			 
-			 txtexpense.setLayoutX(20);
-			 txtexpense.setLayoutY(330);
-			 expcombo.setLayoutX(20);
-			 expcombo.setLayoutY(360);
+			 
+			 //Adding labels to stage
+			 Design.Layout(txtexpense, 20, 330, roothome);
+			 Design.Layout(expcombo, 20, 360, roothome);
+			 
+			 //combobox clearing
 			 expcombo.setOnMouseClicked(e->
 			 {
 				 expcombo.setPromptText("");
 			 
 			 });
+			 
+			 //expense amount text field
 			 TextField txtexpenseamount= new TextField();
 	         txtexpenseamount.setText("Budgeted amount");
 	         txtexpenseamount.setOnMouseClicked(e->
@@ -203,13 +211,10 @@ public class NewUser extends Main implements Navigation {
 				 lblexpmsg.setVisible(false);
 				 
 			 });
-			 txtexpenseamount.setLayoutX(20);
-	         txtexpenseamount.setLayoutY(390);
+	         Design.Layout(txtexpenseamount, 20, 390, roothome);
 	         
 	         
-	         //
 	         //Adding expense processing
-	        
 	         btnaddexpense.setOnAction(e->
 	         {
 	        	 Pattern netpaypat= Pattern.compile("\\d*[.,]?\\d{0,2}");
@@ -238,15 +243,16 @@ public class NewUser extends Main implements Navigation {
 					 
 				 }
 	         });
-	       //Incomes setup
+	         
+	         
+	         //Incomes setup
 			 Label lblincome= new Label("Add an Income");
-			 lblincome.setFont(font);
-			 lblincome.setLayoutX(280);
-			 lblincome.setLayoutY(300);
+			 Design.Layout(lblincome, 280, 300, roothome);
 			 Label lblincmsg= new Label();
 			 lblincmsg.setStyle(" -fx-background-color: white;");
-			 lblincmsg.setLayoutX(280);
-			 lblincmsg.setLayoutY(460);
+			 Design.Layout(lblincmsg, 280, 460, roothome);
+			 
+			 
 			 //combobox for expenses
 			 ObservableList<String> incitems=FXCollections.observableArrayList("Stipends","Part-time Job","Freelancing","Online Work","Scholarships and Grants","Internship","Selling Goods and Services","Content Creation");
 			 ComboBox<String> incCombo= new ComboBox<>(incitems);
@@ -265,6 +271,8 @@ public class NewUser extends Main implements Navigation {
 				 lblincmsg.setVisible(false);
 				 
 			 });
+			 
+			 
 			 //filteredList
 			 txtincCombo.textProperty().addListener((observable,oldValue,newValue)->
 			 {
@@ -282,11 +290,10 @@ public class NewUser extends Main implements Navigation {
 					 incCombo.setItems(filtered);
 				 }
 			 });
+			 Design.Layout(txtinc, 280, 330, roothome);
+			 Design.Layout(incCombo, 280, 360, roothome);
 			 
-			 txtinc.setLayoutX(280);
-			 txtinc.setLayoutY(330);
-			 incCombo.setLayoutX(280);
-			 incCombo.setLayoutY(360);
+			 
 			 TextField txtincAmount= new TextField();
 	         txtincAmount.setText("Budgeted amount");
 	         txtincAmount.setOnMouseClicked(e->
@@ -295,13 +302,10 @@ public class NewUser extends Main implements Navigation {
 				 lblincmsg.setVisible(false);
 				 
 			 });
-			 txtincAmount.setLayoutX(280);
-	         txtincAmount.setLayoutY(390);
+	         Design.Layout(txtincAmount, 280, 390, roothome);
 	         
 	         
-	         //
 	         //Adding income processing
-	        
 	         btnaddincome.setOnAction(e->
 	         {
 	        	 Pattern netpaypat= Pattern.compile("\\d*[.,]?\\d{0,2}");
@@ -330,6 +334,8 @@ public class NewUser extends Main implements Navigation {
 					 
 				 }
 	         });
+	         
+	         
 	         //savings plan setup
 				/*
 				 * Label lblsavings= new Label("Savings Plan"); lblsavings.setFont(font);
@@ -366,44 +372,18 @@ public class NewUser extends Main implements Navigation {
 				 * 
 				 * });
 				 */
+	         
+	         
 	         //btndone processing
-	         btndone.setFont(font);
-			 btndone.setLayoutX(470); 
-			 btndone.setLayoutY(650);
+	         btndone.setFont(Design.ButtonFont());
+			 Design.Layout(btndone, 470, 650, roothome);
 			 btndone.setStyle("-fx-background-radius: 15px;");
 	         btndone.setOnAction(e->{
 	        	 Navigation.toHomepage();
 	         });
-	         
-			 
-			 //Adding components to scene
-			 //roothome.getChildren().add(txtsavingstarget);
-			 //roothome.getChildren().add(btnsavings);
-			 //roothome.getChildren().add(lblname);
-			 roothome.getChildren().add(txtexpenseamount);
-			 roothome.getChildren().add(txtincAmount);
-			 roothome.getChildren().add(expcombo);
-			 roothome.getChildren().add(incCombo);
-			 roothome.getChildren().add(txtexpense);
-			 roothome.getChildren().add(txtinc);
-			 roothome.getChildren().add(lblexpense);
-			 //roothome.getChildren().add(txtnetpay);
-			 //roothome.getChildren().add(lblnetpay);
-			 roothome.getChildren().add(lblincome);
-			 //roothome.getChildren().add(btnselect);
-			 //roothome.getChildren().add(lblprofilepic);
-			 //roothome.getChildren().add(txtname);
-			 roothome.getChildren().add(lblquote);
-			 roothome.getChildren().add(lblwelcome);
-			 //roothome.getChildren().add(txtsavings);
-			 //roothome.getChildren().add(lblsavings);
-			 roothome.getChildren().add(btnaddDetails);
-			 roothome.getChildren().add(btnaddexpense);
-			 roothome.getChildren().add(btnaddincome);
-			 roothome.getChildren().add(lblexpmsg);
-			 roothome.getChildren().add(lblincmsg);
-			 roothome.getChildren().add(btndone);
-			 scene= new Scene(roothome,600,800);
+			
+			
+			 scene= new Scene(roothome);
 			//colour of the scene
 			 scene.setFill(new LinearGradient(0, 0, 1, 1, true,CycleMethod.NO_CYCLE,new Stop(0, Color.web("#ff7f50")),new Stop(1, Color.web("#6a5acd"))));
 			 

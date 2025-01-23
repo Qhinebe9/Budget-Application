@@ -237,7 +237,7 @@ public class Homepage extends Canvas implements Navigation, Design{
          //Adding components to root node
 		 roothome.getStyleClass().add("color-palette");
 		 roothome.getChildren().add(cmbMonths);
-		 scene= new Scene(roothome,600,800);
+		 scene= new Scene(roothome);
 		 
 		 
 		 //colour of the scene

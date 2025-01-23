@@ -9,6 +9,8 @@ import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -23,6 +25,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
@@ -58,14 +62,16 @@ public class History extends Canvas implements Navigation, Design {
         //
     	//rootnode
 		 Group roothome= new Group();
-		 //
+		 
+		 
 		 //back button
-		 //
 		 btnback= new Button("Back");
 		 btnback.setPrefSize(100, 30);
 		 Design.Layout(btnback, 20, 20, roothome);
 		 btnback.setFont(Design.ButtonFont());
 		 btnback.setStyle(Design.ButtonStyle());
+		 
+		 
 		// Header Section
 	        Label title = new Label("Transaction History");
 	        title.setFont(Design.HeadingFont());
@@ -78,6 +84,22 @@ public class History extends Canvas implements Navigation, Design {
 	        filterButton.setFont(Design.ButtonFont());
 	        filterButton.setStyle(Design.ButtonStyle());
 	        Design.Layout(filterButton,405,55,roothome);
+	      //table
+	        TableView<ObservableList<Object>> table= new TableView<>();
+	        TableColumn<ObservableList<Object>, String> datecol=new TableColumn<>("Date");
+	        datecol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(0)));
+	        TableColumn<ObservableList<Object>, String> namecol=new TableColumn<>("Name");
+	        namecol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(1)));
+	        TableColumn<ObservableList<Object>, String> categorycol=new TableColumn<>("Category");
+	        categorycol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(2)));
+	        TableColumn<ObservableList<Object>, String> typecol=new TableColumn<>("Type");
+	        typecol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(3)));
+	        TableColumn<ObservableList<Object>, Double> amountcol=new TableColumn<>("Amount");
+	        amountcol.setCellValueFactory(cellData -> new SimpleDoubleProperty((Double) cellData.getValue().get(4)).asObject());
+	        Design.Layout(table, 700, 140, roothome);
+	     //ObservableList for entries
+	        ObservableList<ObservableList<Object>> data= FXCollections.observableArrayList();
+	        
 	     // Transaction List
 	        try { 
 			      Statement stm= Main.con.createStatement(); 
@@ -96,8 +118,17 @@ public class History extends Canvas implements Navigation, Design {
 					  String category=rs.getString("item_category");
 					  String type=rs.getString("item_type");
 					  HBox box=createTransactionCard(strdate, type, name, amount);
-					  transactionList.getChildren().add(box);  
+					  transactionList.getChildren().add(box);
+					  //adding to table
+					  data.add(FXCollections.observableArrayList(strdate,name,category,type,amount));
+					  table.setItems(data);
 				  }
+				  
+				  table.getColumns().add(datecol);
+			      table.getColumns().add(namecol);
+			      table.getColumns().add(categorycol);
+			      table.getColumns().add(typecol);
+			      table.getColumns().add(amountcol);
 				  
 				  ScrollPane scrollpane=new ScrollPane(transactionList);
 				  scrollpane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -185,9 +216,12 @@ public class History extends Canvas implements Navigation, Design {
 	         btnback.setOnAction(e->{
 	        	 Navigation.toHomepage();
 	         });
+	         
+	         
+	         
 	        
 
-		 scene= new Scene(roothome,600,800);
+		 scene= new Scene(roothome);
 		 //colour of the scene
 		 scene.setFill(new LinearGradient(0, 0, 1, 1, true,CycleMethod.NO_CYCLE,new Stop(0, Color.web("#ff7f50")),new Stop(1, Color.web("#6a5acd"))));
 		 //linear-gradient(to bottom right, #ff7f50, #6a5acd)
