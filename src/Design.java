@@ -4,6 +4,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.Screen;
 
 public interface Design {
 	static Font HeadingFont() {
@@ -29,6 +30,16 @@ public interface Design {
 		node.setLayoutX(x);
         node.setLayoutY(y);
         root.getChildren().add(node);
+	}
+	static int GetX(int percent) {
+		double screenWidth = Screen.getPrimary().getVisualBounds().getWidth();
+        int value=(int) (screenWidth*percent/100);
+        return value;
+	}
+	static int GetY(int percent) {
+        double screenHeight = Screen.getPrimary().getVisualBounds().getHeight();
+        int value=(int) (screenHeight*percent/100);
+        return value;
 	}
 	static void AlertMsg(int type, String status, String heading, String Content) {
     	Alert alert= new Alert(AlertType.INFORMATION);

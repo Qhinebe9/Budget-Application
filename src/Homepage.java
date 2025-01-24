@@ -138,12 +138,11 @@ public class Homepage extends Canvas implements Navigation, Design{
 			  
 			  
 			//Stroking spending rectangles
-		         Canvas spendingcanvas= new Canvas(600,700); 
+		         Canvas spendingcanvas= new Canvas(Design.GetX(60),Design.GetY(50)); 
 		         GraphicsContext gc= spendingcanvas.getGraphicsContext2D();
 		         gc.setStroke(Color.FLORALWHITE);
 		         gc.setFill(Color.FLORALWHITE);
-		         gc.fillRoundRect(220, 110,350, 40,40, 40);
-		         
+		         gc.fillRoundRect(Design.GetX(50), Design.GetY(5),350, 40,40, 40);
 		       //percentage spending
 				 if (spendingpercent<50)
 					 gc.setFill(Color.LIGHTGREEN);
@@ -151,8 +150,8 @@ public class Homepage extends Canvas implements Navigation, Design{
 					 gc.setFill(Color.ORANGE);
 				 else if (spendingpercent>=80 &&spendingpercent<=100)
 					 gc.setFill(Color.RED);
-		         gc.fillRoundRect(220,110,barlength,40,40,40);
-		         roothome.getChildren().add(spendingcanvas);
+		         gc.fillRoundRect(Design.GetX(50),Design.GetY(5),barlength,40,40,40);
+		         Design.Layout(spendingcanvas, Design.GetX(40), Design.GetY(10), roothome);
 
 		         lblpercentagespending.setFont(Design.ButtonFont());
 		         Design.Layout(lblpercentagespending, 350, 150, roothome);
@@ -207,9 +206,7 @@ public class Homepage extends Canvas implements Navigation, Design{
 			  }
 			  PieChart piechart= new PieChart(piedata);
 			  piechart.setTitle("Spending");
-			  roothome.getChildren().add(piechart);
-			  piechart.setLayoutX(50);
-			  piechart.setLayoutY(300);
+			  Design.Layout(piechart, Design.GetX(50), Design.GetY(30), roothome);
 			  }
 			  catch (SQLException e) 
 			  { // TODO Auto-generated catch block
