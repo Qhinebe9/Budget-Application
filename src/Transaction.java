@@ -4,6 +4,8 @@ import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
@@ -123,11 +125,12 @@ public class Transaction extends Canvas implements Navigation, Design {
 					  String name=st.nextToken();
 					  rs=stm.executeQuery("SELECT iditems,name,actualAmount FROM items Where name='"+name+"'");
 					  if (rs.next())
-					  {
+					  {   
+						  LocalDateTime date=LocalDateTime.now();
 						  int itemid=rs.getInt("iditems");
 						  double amount=rs.getDouble("actualAmount")+dbladd;
 						  stm.execute("Update items set actualAmount='"+amount+"' where iditems='"+itemid+"'");
-						  stm.execute("Insert Into transaction (amount,date,itemID) Values ('"+dbladd+"','"+java.time.LocalDate.now()+"','"+itemid+"')"); 
+						  stm.execute("Insert Into transaction (amount,date,itemID) Values ('"+dbladd+"','"+date+"','"+itemid+"')"); 
 						  Design.AlertMsg(1,"Success","Added", "You have successfully made an addition to "+name+". You have R"+Double.toString(amount)+" in this budget.");
 					  }
 					  stm.close();
@@ -165,6 +168,7 @@ public class Transaction extends Canvas implements Navigation, Design {
 					  rs=stm.executeQuery("SELECT iditems,name,actualAmount FROM items Where name='"+name+"'");
 					  if (rs.next())
 					  {
+						  LocalDateTime date=LocalDateTime.now();
 						  int itemid=rs.getInt("iditems");
 						  double actualamount=rs.getDouble("actualAmount");
 						  if ((actualamount-dblded)<0)
@@ -173,7 +177,7 @@ public class Transaction extends Canvas implements Navigation, Design {
 						  }else {
 						  double amount=actualamount-dblded;
 						  stm.execute("Update items set actualAmount='"+amount+"' where iditems='"+itemid+"'");
-						  stm.execute("Insert Into transaction (amount,date,itemID) Values ('"+-dblded+"','"+java.time.LocalDate.now()+"','"+itemid+"')"); 
+						  stm.execute("Insert Into transaction (amount,date,itemID) Values ('"+-dblded+"','"+date+"','"+itemid+"')"); 
 						  Design.AlertMsg(1,"Success","Deducted", "You have successfully made an deduction to "+name+". You have R"+Double.toString(amount)+" remaining in this budget.");
 						  }
 					  }

@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Scanner;
 
@@ -18,6 +19,7 @@ import java.util.Scanner;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
@@ -99,12 +101,87 @@ public class Homepage extends Canvas implements Navigation, Design{
          imageView.setClip(clip);
          
          
+         //Label for recent transactions
+         Label lblrecent=new Label();
+         lblrecent.setText("Latest Transactions");
+         lblrecent.setFont(Design.H2Font());
+         Design.Layout(lblrecent, Design.GetX(2), Design.GetY(30), roothome);
+         
+         
+       //Last 3 transactions section
+	        try { 
+			      Statement stm= Main.con.createStatement(); 
+				   rs=stm.executeQuery("SELECT  date AS transaction_date, amount AS transaction_amount, name AS item_name,\r\n"
+				  		                      + "category AS item_category, type AS item_type FROM transaction JOIN items i\r\n"
+				  		                      + "ON transaction.itemid = i.iditems ORDER BY transaction_date DESC LIMIT 3;"); 
+				  VBox transactionList = new VBox(10);
+			      transactionList.setPadding(new Insets(10));
+			      transactionList.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cccccc; -fx-border-radius: 10px; -fx-background-radius: 10px;");
+			      while (rs.next()) 
+				  {  
+					  Date date=rs.getDate("transaction_date");
+					  String strdate=date.toString();
+					  double amount=rs.getDouble("transaction_amount");
+					  String name=rs.getString("item_name");
+					  String type=rs.getString("item_type");
+					  HBox box=History.createTransactionCard(strdate, type, name, amount);
+					  transactionList.getChildren().add(box);
+				  }
+				  ScrollPane scrollpane=new ScrollPane(transactionList);
+				  scrollpane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+				  Design.Layout(scrollpane, Design.GetX(2), Design.GetY(35), roothome);
+				  scrollpane.setMaxHeight(500);
+				  scrollpane.setMinWidth(250);
+				  scrollpane.setFitToWidth(true);
+			      scrollpane.setStyle(" border-radius:5px;");
+	        }catch(SQLException ex) {
+	        	ex.printStackTrace();
+	        }
+         
+  
+	        
+	        
+	      //Label for Top category
+	         Label lblcategory=new Label();
+	         lblcategory.setText("Top Spending Categories");
+	         lblcategory.setFont(Design.H2Font());
+	         Design.Layout(lblcategory, Design.GetX(20), Design.GetY(30), roothome);
+	         
+	         
+	       //Last 3 transactions section
+		        try { 
+				      Statement stm= Main.con.createStatement(); 
+				      ResultSet rs=stm.executeQuery("Select category, sum(actualAmount) as amount from items where type='expense' group by category ORDER BY amount limit 3"); 
+					  VBox transactionList = new VBox(10);
+				      transactionList.setPadding(new Insets(10));
+				      transactionList.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cccccc; -fx-border-radius: 10px; -fx-background-radius: 10px;");
+					  while (rs.next()) 
+					  {  
+						  LocalDate date=LocalDate.now();
+						  String strdate=date.toString();
+						  double amount=rs.getDouble("amount");
+						  String category=rs.getString("category");
+						  HBox box=History.createTransactionCard(strdate, "", category, amount);
+						  transactionList.getChildren().add(box);
+					  }
+					  ScrollPane scrollpane=new ScrollPane(transactionList);
+					  scrollpane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+					  Design.Layout(scrollpane, Design.GetX(20), Design.GetY(35), roothome);
+					  scrollpane.setMaxHeight(500);
+					  scrollpane.setMinWidth(250);
+					  scrollpane.setFitToWidth(true);
+				      scrollpane.setStyle(" border-radius:5px;");
+		        }catch(SQLException ex) {
+		        	ex.printStackTrace();
+		        }
+	         
+         
+         
          //Month selection combobox(Indices start at 0)
          ObservableList<String> strMonths= FXCollections.observableArrayList("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
          ComboBox<String> cmbMonths= new ComboBox<String>(strMonths);
          cmbMonths.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 15px; -fx-font: 18px \"Comic Sans Ms\";");
-         cmbMonths.setLayoutX(310);
-         cmbMonths.setLayoutY(20);
+         Design.Layout(cmbMonths, Design.GetX(65), Design.GetY(1), roothome);
          cmbMonths.setPrefSize(100, 30);
          Date date= new Date();
          int intdate= date.getMonth();
@@ -114,8 +191,6 @@ public class Homepage extends Canvas implements Navigation, Design{
          //displaying money spent label
          Label lblmoneyspent= new Label("Monthly Spending:");
          lblmoneyspent.setFont(Design.H2Font());
-         lblmoneyspent.setLayoutX(300);
-         lblmoneyspent.setLayoutY(70);
          
          
          //Calculating spending from db
@@ -134,15 +209,16 @@ public class Homepage extends Canvas implements Navigation, Design{
 			  stm.close();
 			  int spendingpercent=(int) (dblremaining/dblbudget*100);
 			  lblpercentagespending.setText( spendingpercent+"% Spent");
-			  double barlength=350*spendingpercent/100;
+			  double barlength=Design.GetX(40)*spendingpercent/100;
 			  
 			  
 			//Stroking spending rectangles
-		         Canvas spendingcanvas= new Canvas(Design.GetX(60),Design.GetY(50)); 
+		         Canvas spendingcanvas= new Canvas(1000,200); 
 		         GraphicsContext gc= spendingcanvas.getGraphicsContext2D();
+		         Design.Layout(spendingcanvas, Design.GetX(25), Design.GetY(5), roothome);
 		         gc.setStroke(Color.FLORALWHITE);
 		         gc.setFill(Color.FLORALWHITE);
-		         gc.fillRoundRect(Design.GetX(50), Design.GetY(5),350, 40,40, 40);
+		         gc.fillRoundRect(Design.GetX(25), Design.GetY(7),Design.GetX(40), 40,40, 40);
 		       //percentage spending
 				 if (spendingpercent<50)
 					 gc.setFill(Color.LIGHTGREEN);
@@ -150,19 +226,18 @@ public class Homepage extends Canvas implements Navigation, Design{
 					 gc.setFill(Color.ORANGE);
 				 else if (spendingpercent>=80 &&spendingpercent<=100)
 					 gc.setFill(Color.RED);
-		         gc.fillRoundRect(Design.GetX(50),Design.GetY(5),barlength,40,40,40);
-		         Design.Layout(spendingcanvas, Design.GetX(40), Design.GetY(10), roothome);
+		         gc.fillRoundRect(Design.GetX(25),Design.GetY(7),barlength,40,40,40);
+		         
+		         
 
 		         lblpercentagespending.setFont(Design.ButtonFont());
-		         Design.Layout(lblpercentagespending, 350, 150, roothome);
+		         Design.Layout(lblpercentagespending, Design.GetX(65), Design.GetY(18), roothome);
 		       //Available balance handling
 		         Label lblavail= new Label();
 		         String strspent=Double.toString(dblremaining);
 		         lblmoneyspent.setText("Monthly Spending:"+"R"+strspent);
 		         lblmoneyspent.setFont(Design.H2Font());
-		         lblmoneyspent.setLayoutX(300);
-		         lblmoneyspent.setLayoutY(70);
-		         Design.Layout(lblmoneyspent, 300, 70, roothome);
+		         Design.Layout(lblmoneyspent, Design.GetX(60), Design.GetY(6), roothome);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -174,7 +249,7 @@ public class Homepage extends Canvas implements Navigation, Design{
          btntransact.setPrefSize(280, 30);
          btntransact.setFont(Design.ButtonFont());
          btntransact.setStyle(Design.ButtonStyle());
-         Design.Layout(btntransact, 150, 180, roothome);
+         Design.Layout(btntransact, Design.GetX(61), Design.GetY(23), roothome);
          
          
          //Previous Transact button
@@ -185,7 +260,7 @@ public class Homepage extends Canvas implements Navigation, Design{
          btnprevtransact.setStyle(Design.ButtonStyle());
          btnprevtransact.setLayoutX(210);
          btnprevtransact.setLayoutY(240);
-         Design.Layout(btnprevtransact, 210, 240, roothome);
+         Design.Layout(btnprevtransact, Design.GetX(65), Design.GetY(30), roothome);
          
          //btnprevtransact processing
          btnprevtransact.setOnAction(e->{
@@ -205,8 +280,9 @@ public class Homepage extends Canvas implements Navigation, Design{
 				  piedata.add(new PieChart.Data(category, amount));
 			  }
 			  PieChart piechart= new PieChart(piedata);
+			  piechart.setMinWidth(Design.GetX(36));
 			  piechart.setTitle("Spending");
-			  Design.Layout(piechart, Design.GetX(50), Design.GetY(30), roothome);
+			  Design.Layout(piechart, Design.GetX(50), Design.GetY(38), roothome);
 			  }
 			  catch (SQLException e) 
 			  { // TODO Auto-generated catch block
@@ -233,7 +309,6 @@ public class Homepage extends Canvas implements Navigation, Design{
          
          //Adding components to root node
 		 roothome.getStyleClass().add("color-palette");
-		 roothome.getChildren().add(cmbMonths);
 		 scene= new Scene(roothome);
 		 
 		 

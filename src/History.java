@@ -230,7 +230,7 @@ public class History extends Canvas implements Navigation, Design {
 	{
 		return scene;
 	}
-	private HBox createTransactionCard(String date, String category, String description, double amount) {
+	public static HBox createTransactionCard(String date, String category, String description, double amount) {
         HBox card = new HBox(10);
         card.setAlignment(Pos.CENTER_LEFT);
         card.setPadding(new Insets(10));
