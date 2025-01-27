@@ -12,10 +12,10 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Random;
 import java.util.Scanner;
 
-
-
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -151,7 +151,12 @@ public class Homepage extends Canvas implements Navigation, Design{
 	       //Last 3 transactions section
 		        try { 
 				      Statement stm= Main.con.createStatement(); 
-				      ResultSet rs=stm.executeQuery("Select category, sum(actualAmount) as amount from items where type='expense' group by category ORDER BY amount limit 3"); 
+				      ResultSet rs=stm.executeQuery("SELECT SUM(transaction.amount) AS amount, items.category \r\n"
+				      		+ "FROM transaction \r\n"
+				      		+ "JOIN items ON transaction.itemid = items.iditems where items.type='expense' \r\n"
+				      		+ "GROUP BY items.category \r\n"
+				      		+ "ORDER BY amount \r\n"
+				      		+ "LIMIT 3;"); 
 					  VBox transactionList = new VBox(10);
 				      transactionList.setPadding(new Insets(10));
 				      transactionList.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cccccc; -fx-border-radius: 10px; -fx-background-radius: 10px;");
@@ -269,26 +274,57 @@ public class Homepage extends Canvas implements Navigation, Design{
          
          
          //Spending graph
-         try { 
-		      Statement stm= Main.con.createStatement(); 
-			  ResultSet rs=stm.executeQuery("Select category, sum(actualAmount) as amount from items where type='expense' group by category"); 
-			  ObservableList<PieChart.Data> piedata= FXCollections.observableArrayList();
-			  while (rs.next()) 
-			  { 
-				  String category=rs.getString("category");
-				  double amount=rs.getDouble("amount");
-				  piedata.add(new PieChart.Data(category, amount));
-			  }
-			  PieChart piechart= new PieChart(piedata);
-			  piechart.setMinWidth(Design.GetX(36));
-			  piechart.setTitle("Spending");
-			  Design.Layout(piechart, Design.GetX(50), Design.GetY(38), roothome);
-			  }
-			  catch (SQLException e) 
-			  { // TODO Auto-generated catch block
-			  e.printStackTrace();
-			  System.out.println("flop with try");
-			  }
+         try {
+             // Execute SQL query to fetch data
+             Statement stm = Main.con.createStatement();
+             ResultSet rs = stm.executeQuery(
+                 "SELECT SUM(transaction.amount) AS amount, items.category " +
+                 "FROM transaction " +
+                 "JOIN items ON transaction.itemid = items.iditems " +
+                 "WHERE items.type='expense' " +
+                 "GROUP BY items.category"
+             );
+
+             // Prepare the list to hold pie chart data
+             ObservableList<PieChart.Data> piedata = FXCollections.observableArrayList();
+
+             // Random number generator for random colors
+             Random rand = new Random();
+
+             while (rs.next()) {
+                 String category = rs.getString("category");
+                 double amount = rs.getDouble("amount");
+
+                 // Create a new PieChart.Data object for each category
+                 PieChart.Data data = new PieChart.Data(category, amount);
+
+                 // Add the data to the pie chart's data list
+                 piedata.add(data);
+             }
+
+             // Create the PieChart using the data collected
+             PieChart piechart = new PieChart(piedata);
+             piechart.setMinWidth(Design.GetX(36));
+             piechart.setTitle("Spending");
+
+             // Layout the PieChart in the root layout (Assuming you have a layout manager)
+             Design.Layout(piechart, Design.GetX(50), Design.GetY(38), roothome);
+
+             // Ensure that the pie chart is rendered before applying colors
+             Platform.runLater(() -> {
+                 for (PieChart.Data data : piedata) {
+                     // Generate a random color for each pie slice
+                     Color randomColor = new Color(rand.nextDouble(), rand.nextDouble(), rand.nextDouble(), 1.0);
+                     // Set the color for the pie slice by modifying the slice's style using CSS
+                     data.getNode().setStyle("-fx-pie-color: " + toHexString(randomColor) + ";");
+                 }
+             });
+
+         } catch (SQLException e) {
+             // Handle potential SQL exceptions
+             e.printStackTrace();
+             System.out.println("Error with SQL query execution.");
+         }
 			 
          
          //more info button
@@ -335,4 +371,12 @@ public class Homepage extends Canvas implements Navigation, Design{
 	{
 		return scene;
 	}
+	private String toHexString(Color color) {
+        // Convert RGB to Hex
+        return String.format("#%02X%02X%02X", 
+            (int)(color.getRed() * 255), 
+            (int)(color.getGreen() * 255), 
+            (int)(color.getBlue() * 255)
+        );
+    }
 }
