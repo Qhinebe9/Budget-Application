@@ -252,11 +252,20 @@ public class History extends Canvas implements Navigation, Design {
         categoryLabel.setFont(Font.font("Arial", FontWeight.LIGHT, 12));
         categoryLabel.setTextFill(Color.DARKGRAY);
         details.getChildren().addAll(dateLabel, descriptionLabel, categoryLabel);
-
-        // Amount
-        Label amountLabel = new Label(String.format("%s%.2f", amount < 0 ? "-" : "+", Math.abs(amount)));
+        Label amountLabel=new Label("0.00");
         amountLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-        amountLabel.setTextFill(amount < 0 ? Color.RED : Color.GREEN);
+        // Amount
+        if (category.isEmpty())
+        {
+        	if (amount<0)
+        		amount=Math.abs(amount);
+        	amountLabel.setText(Double.toString(amount));
+        }
+        else {
+            amountLabel.setText(String.format("%s%.2f", amount < 0 ? "-" : "+", Math.abs(amount)));
+            amountLabel.setTextFill(amount < 0 ? Color.RED : Color.GREEN);
+        }
+        
 
         card.getChildren().addAll(details, amountLabel);// dont forget to add icon
         HBox.setHgrow(details, Priority.ALWAYS);

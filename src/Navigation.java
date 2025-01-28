@@ -14,4 +14,8 @@ public interface Navigation {
 		History history= new History();
 		Main.ps.setScene(history.getscene());
 	}
+	static void toGraphs() {
+		Graphs graphs= new Graphs();
+		Main.ps.setScene(graphs.getscene());
+	}
 }

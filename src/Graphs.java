@@ -1,29 +1,50 @@
 import java.io.File;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.ui.ApplicationFrame;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.general.DefaultPieDataset;
+import java.io.FileNotFoundException;
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Scanner;
 
 
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingNode;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
-public class Homepage extends Canvas implements Navigation, Design{
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.*;
+public class Graphs extends Canvas implements Navigation, Design{
 	
 	Scene scene;
 	String name,path,strnetpay;
@@ -37,7 +58,7 @@ public class Homepage extends Canvas implements Navigation, Design{
 	Statement stm;
 	Image imgprofile;
 	public File txtplan= new File("docs/Plan.txt");
-	public Homepage()
+	public Graphs()
 	{
 		try {
 			stm=  Main.con.createStatement();
@@ -51,110 +72,39 @@ public class Homepage extends Canvas implements Navigation, Design{
     @SuppressWarnings("resource")
 	void createPage()
 	{
-    	//
-    	//Getting info from textfile
-    	//
-		/*
-		 * try(Scanner txtin = new Scanner(txtplan)) { while(txtin.hasNext()) { name=
-		 * txtin.nextLine(); path=txtin.nextLine(); strnetpay=txtin.nextLine();
-		 * 
-		 * } }catch(FileNotFoundException ex) { ex.printStackTrace(); }
-		 */
     	 //rootnode
 		 Group roothome= new Group();
-		 
-		 
-         //displaying name label
-		 name="Q";
-         lblname= new Label("Welcome"+'\n'+name);
-         lblname.setFont(Design.H2Font());
-         Design.Layout(lblname, 20, 160, roothome);
-         
-         
-         //Handling image
-         Image image = new Image("file:data/App Profile pic.jpeg");
-         ImageView imageView = new ImageView(image);
-         // Set size and position
-         imageView.setFitWidth(140);
-         imageView.setFitHeight(140);
-         Design.Layout(imageView, 30, 20, roothome);
-         // Clip the image to a circular shape
-         Circle clip = new Circle(70, 70, 70); // Center (50, 50) with radius 50
-         imageView.setClip(clip);
          
          
          //Label for recent transactions
          Label lblrecent=new Label();
-         lblrecent.setText("Latest Transactions");
-         lblrecent.setFont(Design.H2Font());
-         Design.Layout(lblrecent, Design.GetX(2), Design.GetY(30), roothome);
+         lblrecent.setText("Analytics");
+         lblrecent.setFont(Design.HeadingFont());
+         Design.Layout(lblrecent, Design.GetX(45), Design.GetY(6), roothome);
          
-         
-       //Last 3 transactions section
-	        try { 
-			      Statement stm= Main.con.createStatement(); 
-				   rs=stm.executeQuery("SELECT  date AS transaction_date, amount AS transaction_amount, name AS item_name,\r\n"
-				  		                      + "category AS item_category, type AS item_type FROM transaction JOIN items i\r\n"
-				  		                      + "ON transaction.itemid = i.iditems ORDER BY transaction_date DESC LIMIT 3;"); 
-				  VBox transactionList = new VBox(10);
-			      transactionList.setPadding(new Insets(10));
-			      transactionList.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cccccc; -fx-border-radius: 10px; -fx-background-radius: 10px;");
-			      while (rs.next()) 
-				  {  
-					  Date date=rs.getDate("transaction_date");
-					  String strdate=date.toString();
-					  double amount=rs.getDouble("transaction_amount");
-					  String name=rs.getString("item_name");
-					  String type=rs.getString("item_type");
-					  HBox box=History.createTransactionCard(strdate, type, name, amount);
-					  transactionList.getChildren().add(box);
-				  }
-				  ScrollPane scrollpane=new ScrollPane(transactionList);
-				  scrollpane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-				  Design.Layout(scrollpane, Design.GetX(2), Design.GetY(35), roothome);
-				  scrollpane.setMaxHeight(500);
-				  scrollpane.setMinWidth(250);
-				  scrollpane.setFitToWidth(true);
-			      scrollpane.setStyle(" border-radius:5px;");
-	        }catch(SQLException ex) {
-	        	ex.printStackTrace();
-	        }
-         
-  
-	        
-	        
-	      //Section for Top category
-	         Label lblcategory=new Label();
-	         lblcategory.setText("Top Spending Categories");
-	         lblcategory.setFont(Design.H2Font());
-	         Design.Layout(lblcategory, Design.GetX(20), Design.GetY(30), roothome);
+   
+	      //Section for Budget VS Actual amount
 		        try { 
 				      Statement stm= Main.con.createStatement(); 
 				      ResultSet rs=stm.executeQuery("SELECT SUM(transaction.amount) AS amount, items.category \r\n"
 				      		+ "FROM transaction \r\n"
 				      		+ "JOIN items ON transaction.itemid = items.iditems where items.type='expense' \r\n"
 				      		+ "GROUP BY items.category \r\n"
-				      		+ "ORDER BY amount \r\n"
-				      		+ "LIMIT 3;"); 
-					  VBox transactionList = new VBox(10);
-				      transactionList.setPadding(new Insets(10));
-				      transactionList.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cccccc; -fx-border-radius: 10px; -fx-background-radius: 10px;");
-					  while (rs.next()) 
-					  {  
-						  LocalDate date=LocalDate.now();
-						  String strdate=date.toString();
+				      		+ "ORDER BY amount \r\n"); 
+					  //Bar chart
+				      DefaultCategoryDataset dataset= new DefaultCategoryDataset();
+				      while (rs.next()) 
+					  {
 						  double amount=rs.getDouble("amount");
 						  String category=rs.getString("category");
-						  HBox box=History.createTransactionCard(strdate, "", category, amount);
-						  transactionList.getChildren().add(box);
+						  dataset.addValue(amount, category, category);
 					  }
-					  ScrollPane scrollpane=new ScrollPane(transactionList);
-					  scrollpane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-					  Design.Layout(scrollpane, Design.GetX(20), Design.GetY(35), roothome);
-					  scrollpane.setMaxHeight(500);
-					  scrollpane.setMinWidth(250);
-					  scrollpane.setFitToWidth(true);
-				      scrollpane.setStyle(" border-radius:5px;");
+				      JFreeChart chart= ChartFactory.createStackedBarChart("Budget vs. Actual Spending", "Category", "Amount" , dataset, PlotOrientation.VERTICAL,true, true, false);
+				      ChartPanel chartPanel= new ChartPanel(chart);
+				      chartPanel.setPreferredSize(new java.awt.Dimension(800, 600));
+				      SwingNode swingNode= new SwingNode();
+				      swingNode.setContent(chartPanel);
+				      Design.Layout(swingNode, Design.GetX(10), Design.GetY(6), roothome);
 		        }catch(SQLException ex) {
 		        	ex.printStackTrace();
 		        }
@@ -285,10 +235,6 @@ public class Homepage extends Canvas implements Navigation, Design{
          btnmore.setFont(Design.ButtonFont());
          btnmore.setStyle(Design.ButtonStyle());
          Design.Layout(btnmore, 210, 700, roothome);
-         btnmore.setOnAction(e->{
-        	 Navigation.toGraphs();
-        	 
-         });
          
          
          //Adding infobutton to button
