@@ -13,14 +13,15 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Scanner;
 
 
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.embed.swing.SwingNode;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -28,8 +29,11 @@ import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.PieChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.*;
@@ -86,25 +90,36 @@ public class Graphs extends Canvas implements Navigation, Design{
 	      //Section for Budget VS Actual amount
 		        try { 
 				      Statement stm= Main.con.createStatement(); 
-				      ResultSet rs=stm.executeQuery("SELECT SUM(transaction.amount) AS amount, items.category \r\n"
+				      ResultSet rs=stm.executeQuery("SELECT SUM(transaction.amount) AS actualamount, SUM(items.setAmount) as setamount, items.category \r\n"
 				      		+ "FROM transaction \r\n"
 				      		+ "JOIN items ON transaction.itemid = items.iditems where items.type='expense' \r\n"
-				      		+ "GROUP BY items.category \r\n"
-				      		+ "ORDER BY amount \r\n"); 
+				      		+ "GROUP BY items.category \r\n"); 
 					  //Bar chart
-				      DefaultCategoryDataset dataset= new DefaultCategoryDataset();
+				      CategoryAxis x_axis=new CategoryAxis();
+				      x_axis.setLabel("Categories");
+				      NumberAxis y_axis= new NumberAxis();
+				      BarChart<String, Number> stackedbarchart= new BarChart<>(x_axis,y_axis);
+				      stackedbarchart.setTitle("Budget vs. Actual Spending");
+				      List<XYChart.Series<String, Number>> seriesList= new ArrayList<>();
+				      XYChart.Series<String, Number> series1= new XYChart.Series<>();
+					  series1.setName("Budgeted");
+					  XYChart.Series<String, Number> series2= new XYChart.Series<>();
+					  series2.setName("Actual");
 				      while (rs.next()) 
 					  {
-						  double amount=rs.getDouble("amount");
+						  double amount=rs.getDouble("actualamount");
+						  amount=Math.abs(amount);
 						  String category=rs.getString("category");
-						  dataset.addValue(amount, category, category);
+						  double setamount=rs.getDouble("setamount");
+						  System.out.println("Category: "+category+" Budgeted amount: "+setamount+" Actual amount: "+amount);
+						  series1.getData().add(new XYChart.Data<>(category,setamount));
+						  series2.getData().add(new XYChart.Data<>(category,amount));
+						   
 					  }
-				      JFreeChart chart= ChartFactory.createStackedBarChart("Budget vs. Actual Spending", "Category", "Amount" , dataset, PlotOrientation.VERTICAL,true, true, false);
-				      ChartPanel chartPanel= new ChartPanel(chart);
-				      chartPanel.setPreferredSize(new java.awt.Dimension(800, 600));
-				      SwingNode swingNode= new SwingNode();
-				      swingNode.setContent(chartPanel);
-				      Design.Layout(swingNode, Design.GetX(10), Design.GetY(6), roothome);
+				      seriesList.add(series1);
+					  seriesList.add(series2); 
+				      stackedbarchart.getData().addAll(seriesList);
+				      Design.Layout(stackedbarchart, Design.GetX(10), Design.GetY(6), roothome);
 		        }catch(SQLException ex) {
 		        	ex.printStackTrace();
 		        }
@@ -215,7 +230,6 @@ public class Graphs extends Canvas implements Navigation, Design{
 				  double amount=rs.getDouble("amount");
 				  amount=Math.abs(amount);
 				  piedata.add(new PieChart.Data(category, amount));
-				  System.out.println("Category: " + category + ", Amount: " + amount);
 			  }
 			  PieChart piechart= new PieChart(piedata);
 			  piechart.setMinWidth(Design.GetX(36));

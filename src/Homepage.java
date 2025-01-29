@@ -265,7 +265,6 @@ public class Homepage extends Canvas implements Navigation, Design{
 				  double amount=rs.getDouble("amount");
 				  amount=Math.abs(amount);
 				  piedata.add(new PieChart.Data(category, amount));
-				  System.out.println("Category: " + category + ", Amount: " + amount);
 			  }
 			  PieChart piechart= new PieChart(piedata);
 			  piechart.setMinWidth(Design.GetX(36));

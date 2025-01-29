@@ -1,61 +1,83 @@
 import javafx.application.Application;
-import javafx.embed.swing.SwingNode;
 import javafx.scene.Scene;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
+import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.data.category.DefaultCategoryDataset;
 
 public class ai extends Application {
 
     @Override
-    public void start(Stage primaryStage) {
-        // Create dataset
-        DefaultCategoryDataset dataset = createDataset();
+    public void start(Stage stage) {
+        // Create the X and Y axes
+        CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabel("Category");
 
-        // Create chart
-        JFreeChart chart = ChartFactory.createStackedBarChart("Stacked Bar Chart Example","Category","Value",dataset);
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Value");
 
-        // Create a ChartPanel to embed the JFreeChart (Swing component)
-        ChartPanel chartPanel = new ChartPanel(chart);
-        chartPanel.setPreferredSize(new java.awt.Dimension(800, 600));
+        // Create the bar chart
+        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
+        barChart.setTitle("Dynamically Updated Grouped Bar Chart");
 
-        // Create a SwingNode to wrap the ChartPanel
-        SwingNode swingNode = new SwingNode();
-        // Set the Swing component inside the SwingNode
-        swingNode.setContent(chartPanel);
+        // Create the initial data series
+        XYChart.Series<String, Number> series1 = new XYChart.Series<>();
+        series1.setName("Category A");
 
-        // Create a StackPane to hold the SwingNode
+        XYChart.Series<String, Number> series2 = new XYChart.Series<>();
+        series2.setName("Category B");
+
+        series1.getData().add(new XYChart.Data<>("2025", 50));
+        series2.getData().add(new XYChart.Data<>("2025", 30));
+
+        series1.getData().add(new XYChart.Data<>("2026", 80));
+        series2.getData().add(new XYChart.Data<>("2026", 40));
+
+        // Add the series to the chart
+        barChart.getData().addAll(series1, series2);
+
+        // Create a button to dynamically update the chart
+        Button updateButton = new Button("Update Chart");
+        updateButton.setOnAction(event -> updateChart(barChart));
+
+        // Add the chart and button to a layout
         StackPane root = new StackPane();
-        root.getChildren().add(swingNode);
+        root.getChildren().add(barChart);
+        root.getChildren().add(updateButton);
 
-        // Create a JavaFX Scene and set it on the Stage
+        // Set the button position
+        StackPane.setAlignment(updateButton, javafx.geometry.Pos.BOTTOM_CENTER);
+
+        // Set up the stage and scene
         Scene scene = new Scene(root, 800, 600);
-        primaryStage.setTitle("JavaFX with JFreeChart");
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        stage.setTitle("JavaFX Grouped Bar Chart");
+        stage.setScene(scene);
+        stage.show();
     }
 
-    // Create a dataset for the chart
-    private DefaultCategoryDataset createDataset() {
-        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+    // Method to update the chart dynamically
+    private void updateChart(BarChart<String, Number> barChart) {
+        // Clear current data
+        barChart.getData().clear();
 
-        // Add data for series (you can modify this based on your data)
-        dataset.addValue(1.0, "Series1", "Category1");
-        dataset.addValue(2.0, "Series2", "Category1");
-        dataset.addValue(3.0, "Series3", "Category1");
+        // Create new data for the chart
+        XYChart.Series<String, Number> series1 = new XYChart.Series<>();
+        series1.setName("Category A");
 
-        dataset.addValue(1.5, "Series1", "Category2");
-        dataset.addValue(2.5, "Series2", "Category2");
-        dataset.addValue(1.0, "Series3", "Category2");
+        XYChart.Series<String, Number> series2 = new XYChart.Series<>();
+        series2.setName("Category B");
 
-        dataset.addValue(2.0, "Series1", "Category3");
-        dataset.addValue(1.5, "Series2", "Category3");
-        dataset.addValue(2.5, "Series3", "Category3");
+        series1.getData().add(new XYChart.Data<>("2025", 60));
+        series2.getData().add(new XYChart.Data<>("2025", 20));
 
-        return dataset;
+        series1.getData().add(new XYChart.Data<>("2026", 70));
+        series2.getData().add(new XYChart.Data<>("2026", 50));
+
+        // Add the updated data to the chart
+        barChart.getData().addAll(series1, series2);
     }
 
     public static void main(String[] args) {
