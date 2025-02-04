@@ -90,10 +90,25 @@ public class Graphs extends Canvas implements Navigation, Design{
 	      //Section for Budget VS Actual amount
 		        try { 
 				      Statement stm= Main.con.createStatement(); 
-				      ResultSet rs=stm.executeQuery("SELECT SUM(transaction.amount) AS actualamount, SUM(items.setAmount) as setamount, items.category \r\n"
-				      		+ "FROM transaction \r\n"
-				      		+ "JOIN items ON transaction.itemid = items.iditems where items.type='expense' \r\n"
-				      		+ "GROUP BY items.category \r\n"); 
+				      ResultSet rs=stm.executeQuery("SELECT \r\n"
+				      		+ "    SUM(subquery.amount) AS totalAmount, \r\n"
+				      		+ "    SUM(subquery.totalSetAmount) AS totalSetAmount, \r\n"
+				      		+ "    subquery.category\r\n"
+				      		+ "FROM \r\n"
+				      		+ "    (SELECT \r\n"
+				      		+ "        transaction.itemid, \r\n"
+				      		+ "        SUM(transaction.amount) AS amount,  -- Sum amount for each itemid\r\n"
+				      		+ "        MAX(items.setAmount) AS totalSetAmount,  -- Ensure setAmount is added once per itemid\r\n"
+				      		+ "        items.category\r\n"
+				      		+ "     FROM transaction\r\n"
+				      		+ "     JOIN items ON transaction.itemid = items.iditems\r\n"
+				      		+ "     WHERE items.type = 'expense'\r\n"
+				      		+ "     GROUP BY \r\n"
+				      		+ "        transaction.itemid, \r\n"
+				      		+ "        items.category) AS subquery\r\n"
+				      		+ "GROUP BY \r\n"
+				      		+ "    subquery.category;\r\n"
+				      		+ ""); 
 					  //Bar chart
 				      CategoryAxis x_axis=new CategoryAxis();
 				      x_axis.setLabel("Categories");
@@ -107,10 +122,10 @@ public class Graphs extends Canvas implements Navigation, Design{
 					  series2.setName("Actual");
 				      while (rs.next()) 
 					  {
-						  double amount=rs.getDouble("actualamount");
+						  double amount=rs.getDouble("totalAmount");
 						  amount=Math.abs(amount);
 						  String category=rs.getString("category");
-						  double setamount=rs.getDouble("setamount");
+						  double setamount=rs.getDouble("totalSetAmount");
 						  System.out.println("Category: "+category+" Budgeted amount: "+setamount+" Actual amount: "+amount);
 						  series1.getData().add(new XYChart.Data<>(category,setamount));
 						  series2.getData().add(new XYChart.Data<>(category,amount));
