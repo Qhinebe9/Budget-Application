@@ -64,6 +64,18 @@ public class Homepage extends Canvas implements Navigation, Design{
 		 Group roothome= new Group();
 		 
 		 
+		//Month selection combobox(Indices start at 0)
+         ObservableList<String> strMonths= FXCollections.observableArrayList("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
+         ComboBox<String> cmbMonths= new ComboBox<String>(strMonths);
+         cmbMonths.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 15px; -fx-font: 18px \"Comic Sans Ms\";");
+         Design.Layout(cmbMonths, Design.GetX(65), Design.GetY(1), roothome);
+         cmbMonths.setPrefSize(100, 30);
+         Date date= new Date();
+         int intdate= date.getMonth();
+         cmbMonths.setPromptText(strMonths.get(intdate));
+         int month;
+		 
+		 
          //displaying name label
 		 name="Q";
          lblname= new Label("Welcome"+'\n'+name);
@@ -130,12 +142,22 @@ public class Homepage extends Canvas implements Navigation, Design{
 	         Design.Layout(lblcategory, Design.GetX(20), Design.GetY(30), roothome);
 		        try { 
 				      Statement stm= Main.con.createStatement(); 
-				      ResultSet rs=stm.executeQuery("SELECT SUM(transaction.amount) AS amount, items.category \r\n"
-				      		+ "FROM transaction \r\n"
-				      		+ "JOIN items ON transaction.itemid = items.iditems where items.type='expense' \r\n"
-				      		+ "GROUP BY items.category \r\n"
-				      		+ "ORDER BY amount \r\n"
-				      		+ "LIMIT 3;"); 
+				      ResultSet rs=stm.executeQuery("SELECT \r\n"
+				      		+ "    SUM(transaction.amount) AS amount, \r\n"
+				      		+ "    items.category \r\n"
+				      		+ "FROM \r\n"
+				      		+ "    transaction \r\n"
+				      		+ "JOIN \r\n"
+				      		+ "    items ON transaction.itemid = items.iditems \r\n"
+				      		+ "WHERE \r\n"
+				      		+ "    items.type = 'expense' \r\n"
+				      		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())    -- Current year\r\n"
+				      		+ "    AND MONTH(transaction.date) = MONTH(CURDATE())  -- Current month\r\n"
+				      		+ "GROUP BY \r\n"
+				      		+ "    items.category \r\n"
+				      		+ "ORDER BY \r\n"
+				      		+ "    amount \r\n"
+				      		+ "LIMIT 3;\r\n"); 
 					  VBox transactionList = new VBox(10);
 				      transactionList.setPadding(new Insets(10));
 				      transactionList.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cccccc; -fx-border-radius: 10px; -fx-background-radius: 10px;");
@@ -161,15 +183,7 @@ public class Homepage extends Canvas implements Navigation, Design{
 	         
          
          
-         //Month selection combobox(Indices start at 0)
-         ObservableList<String> strMonths= FXCollections.observableArrayList("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
-         ComboBox<String> cmbMonths= new ComboBox<String>(strMonths);
-         cmbMonths.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 15px; -fx-font: 18px \"Comic Sans Ms\";");
-         Design.Layout(cmbMonths, Design.GetX(65), Design.GetY(1), roothome);
-         cmbMonths.setPrefSize(100, 30);
-         Date date= new Date();
-         int intdate= date.getMonth();
-         cmbMonths.setPromptText(strMonths.get(intdate));
+         
          
          
          //displaying money spent label
@@ -256,7 +270,20 @@ public class Homepage extends Canvas implements Navigation, Design{
          try { 
 		      Statement stm= Main.con.createStatement(); 
 			  //ResultSet rs=stm.executeQuery("Select category, sum(actualAmount) as amount from items where type='expense' group by category"); 
-			  ResultSet rs=stm.executeQuery("Select category,SUM(amount) AS amount  from transaction join items ON transaction.itemid = items.iditems where items.type='expense' group by items.category");
+			  ResultSet rs=stm.executeQuery("SELECT \r\n"
+			  		+ "    items.category, \r\n"
+			  		+ "    SUM(transaction.amount) AS amount\r\n"
+			  		+ "FROM \r\n"
+			  		+ "    transaction\r\n"
+			  		+ "JOIN \r\n"
+			  		+ "    items ON transaction.itemid = items.iditems\r\n"
+			  		+ "WHERE \r\n"
+			  		+ "    items.type = 'expense'\r\n"
+			  		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())    -- Filter by current year\r\n"
+			  		+ "    AND MONTH(transaction.date) = MONTH(CURDATE())  -- Filter by current month\r\n"
+			  		+ "GROUP BY \r\n"
+			  		+ "    items.category;\r\n"
+			  		+ "");
 			  
 			  ObservableList<PieChart.Data> piedata= FXCollections.observableArrayList();
 			  while (rs.next()) 
