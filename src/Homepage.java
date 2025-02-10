@@ -5,8 +5,8 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.Date;
 
-
-
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -62,18 +62,6 @@ public class Homepage extends Canvas implements Navigation, Design{
 		 */
     	 //rootnode
 		 Group roothome= new Group();
-		 
-		 
-		//Month selection combobox(Indices start at 0)
-         ObservableList<String> strMonths= FXCollections.observableArrayList("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
-         ComboBox<String> cmbMonths= new ComboBox<String>(strMonths);
-         cmbMonths.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 15px; -fx-font: 18px \"Comic Sans Ms\";");
-         Design.Layout(cmbMonths, Design.GetX(65), Design.GetY(1), roothome);
-         cmbMonths.setPrefSize(100, 30);
-         Date date= new Date();
-         int intdate= date.getMonth();
-         cmbMonths.setPromptText(strMonths.get(intdate));
-         int month;
 		 
 		 
          //displaying name label
@@ -183,63 +171,34 @@ public class Homepage extends Canvas implements Navigation, Design{
 	         
          
          
+         //Month selection combobox(Indices start at 0)
+         ObservableList<String> strMonths= FXCollections.observableArrayList("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
+         ComboBox<String> cmbMonths= new ComboBox<String>(strMonths);
+         cmbMonths.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 15px; -fx-font: 18px \"Comic Sans Ms\";");
+         Design.Layout(cmbMonths, Design.GetX(65), Design.GetY(1), roothome);
+         cmbMonths.setPrefSize(100, 30);
+         Date date= new Date();
+         int intdate= date.getMonth();
+         cmbMonths.setPromptText(strMonths.get(intdate));
+         cmbMonths.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+             @Override
+             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                 // Event triggered when a new selection is made
+                 System.out.println("Selected Item: " + newValue);
+                 int month=cmbMonths.getSelectionModel().getSelectedIndex();
+                 month++;
+                 System.out.println("month before: "+month);
+                 if (month==0) {
+                	 month=date.getMonth();
+                 }
+                 Populate(roothome,month);
+             }
+         });
+         cmbMonths.valueProperty().addListener((observable, oldValue, newValue) -> {
+         });
          
          
-         
-         //displaying money spent label
-         Label lblmoneyspent= new Label("Monthly Spending:");
-         lblmoneyspent.setFont(Design.H2Font());
-         
-         
-         //Calculating spending from db
-         Label lblpercentagespending=new Label();
-         try {
-			stm= Main.con.createStatement();
-			  rs=stm.executeQuery("SELECT sum(setAmount),sum(actualAmount) FROM items Where type='expense'");
-			  double dblbudget=0;
-			  double dblspent=0;
-			  if (rs.next())
-			  {
-				  dblbudget+=rs.getDouble(1);
-				  dblspent+=rs.getDouble(2);
-				 }
-			  double dblremaining=dblbudget-dblspent;
-			  stm.close();
-			  int spendingpercent=(int) (dblremaining/dblbudget*100);
-			  lblpercentagespending.setText( spendingpercent+"% Spent");
-			  double barlength=Design.GetX(40)*spendingpercent/100;
-			  
-			  
-			//Stroking spending rectangles
-		         Canvas spendingcanvas= new Canvas(1000,200); 
-		         GraphicsContext gc= spendingcanvas.getGraphicsContext2D();
-		         Design.Layout(spendingcanvas, Design.GetX(25), Design.GetY(5), roothome);
-		         gc.setStroke(Color.FLORALWHITE);
-		         gc.setFill(Color.FLORALWHITE);
-		         gc.fillRoundRect(Design.GetX(25), Design.GetY(7),Design.GetX(40), 40,40, 40);
-		       //percentage spending
-				 if (spendingpercent<50)
-					 gc.setFill(Color.LIGHTGREEN);
-				 else if(spendingpercent>=50 && spendingpercent<80)
-					 gc.setFill(Color.ORANGE);
-				 else if (spendingpercent>=80 &&spendingpercent<=100)
-					 gc.setFill(Color.RED);
-		         gc.fillRoundRect(Design.GetX(25),Design.GetY(7),barlength,40,40,40);
-		         
-		         
-
-		         lblpercentagespending.setFont(Design.ButtonFont());
-		         Design.Layout(lblpercentagespending, Design.GetX(65), Design.GetY(18), roothome);
-		       //Available balance handling
-		         Label lblavail= new Label();
-		         String strspent=Double.toString(dblremaining);
-		         lblmoneyspent.setText("Monthly Spending:"+"R"+strspent);
-		         lblmoneyspent.setFont(Design.H2Font());
-		         Design.Layout(lblmoneyspent, Design.GetX(60), Design.GetY(6), roothome);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        
          
          
          //Transact button
@@ -266,43 +225,7 @@ public class Homepage extends Canvas implements Navigation, Design{
          });
          
          
-         //Spending graph
-         try { 
-		      Statement stm= Main.con.createStatement(); 
-			  //ResultSet rs=stm.executeQuery("Select category, sum(actualAmount) as amount from items where type='expense' group by category"); 
-			  ResultSet rs=stm.executeQuery("SELECT \r\n"
-			  		+ "    items.category, \r\n"
-			  		+ "    SUM(transaction.amount) AS amount\r\n"
-			  		+ "FROM \r\n"
-			  		+ "    transaction\r\n"
-			  		+ "JOIN \r\n"
-			  		+ "    items ON transaction.itemid = items.iditems\r\n"
-			  		+ "WHERE \r\n"
-			  		+ "    items.type = 'expense'\r\n"
-			  		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())    -- Filter by current year\r\n"
-			  		+ "    AND MONTH(transaction.date) = MONTH(CURDATE())  -- Filter by current month\r\n"
-			  		+ "GROUP BY \r\n"
-			  		+ "    items.category;\r\n"
-			  		+ "");
-			  
-			  ObservableList<PieChart.Data> piedata= FXCollections.observableArrayList();
-			  while (rs.next()) 
-			  { 
-				  String category=rs.getString("category");
-				  double amount=rs.getDouble("amount");
-				  amount=Math.abs(amount);
-				  piedata.add(new PieChart.Data(category, amount));
-			  }
-			  PieChart piechart= new PieChart(piedata);
-			  piechart.setMinWidth(Design.GetX(36));
-			  piechart.setTitle("Spending");
-			  Design.Layout(piechart, Design.GetX(50), Design.GetY(38), roothome);
-			  }
-			  catch (SQLException e) 
-			  { // TODO Auto-generated catch block
-			  e.printStackTrace();
-			  System.out.println("flop with try");
-			  }
+         
 			 
          
          //more info button
@@ -352,5 +275,108 @@ public class Homepage extends Canvas implements Navigation, Design{
 	public Scene getscene()
 	{
 		return scene;
+	}
+	private void Populate(Group roothome,int month) {
+		//Spending graph
+        try { 
+        	
+        	//Calculating spending from db
+            Label lblpercentagespending=new Label();
+            try {
+   			stm= Main.con.createStatement();
+   			  rs=stm.executeQuery("SELECT sum(setAmount) FROM items Where type='expense'");
+   			  double dblbudget=0;
+   			  double dblspent=0;
+   			  if (rs.next())
+   			  {
+   				  dblbudget+=rs.getDouble(1);
+   			  }
+   			 rs=stm.executeQuery("SELECT amount AS transaction_amount\r\n"
+                      + "FROM transaction JOIN items i\r\n"
+                      + "ON transaction.itemid = i.iditems");
+   			if (rs.next())
+ 			  {
+ 				  dblspent+=rs.getDouble(1);
+ 			  }
+   			  double dblremaining=dblbudget-dblspent;
+   			  stm.close();
+   			  int spendingpercent=(int) (dblremaining/dblbudget*100);
+   			  lblpercentagespending.setText( spendingpercent+"% Spent");
+   			  double barlength=Design.GetX(40)*spendingpercent/100;
+   			  
+   			  
+   			//Stroking spending rectangles
+   		         Canvas spendingcanvas= new Canvas(1000,200); 
+   		      roothome.getChildren().remove(spendingcanvas);
+   		         GraphicsContext gc= spendingcanvas.getGraphicsContext2D();
+   		         Design.Layout(spendingcanvas, Design.GetX(25), Design.GetY(5), roothome);
+   		         gc.setStroke(Color.FLORALWHITE);
+   		         gc.setFill(Color.FLORALWHITE);
+   		         gc.fillRoundRect(Design.GetX(25), Design.GetY(7),Design.GetX(40), 40,40, 40);
+   		       //percentage spending
+   				 if (spendingpercent<50)
+   					 gc.setFill(Color.LIGHTGREEN);
+   				 else if(spendingpercent>=50 && spendingpercent<80)
+   					 gc.setFill(Color.ORANGE);
+   				 else if (spendingpercent>=80 &&spendingpercent<=100)
+   					 gc.setFill(Color.RED);
+   		         gc.fillRoundRect(Design.GetX(25),Design.GetY(7),barlength,40,40,40);
+   		         
+   		         
+
+   		         lblpercentagespending.setFont(Design.ButtonFont());
+   		         Design.Layout(lblpercentagespending, Design.GetX(65), Design.GetY(18), roothome);
+   		       //Available balance handling
+   		         Label lblavail= new Label();
+   		         String strspent=Double.toString(dblremaining);
+   		      //displaying money spent label
+   		         Label lblmoneyspent= new Label("Monthly Spending:");
+   		      roothome.getChildren().remove(lblmoneyspent);
+   		         lblmoneyspent.setFont(Design.H2Font());
+   		         lblmoneyspent.setText("Monthly Spending:"+"R"+strspent);
+   		         lblmoneyspent.setFont(Design.H2Font());
+   		         Design.Layout(lblmoneyspent, Design.GetX(60), Design.GetY(6), roothome);
+   		} catch (SQLException e) {
+   			// TODO Auto-generated catch block
+   			e.printStackTrace();
+   		}
+            
+            
+		      Statement stm= Main.con.createStatement(); 
+			  //ResultSet rs=stm.executeQuery("Select category, sum(actualAmount) as amount from items where type='expense' group by category"); 
+			  ResultSet rs=stm.executeQuery("SELECT \r\n"
+			  		+ "    items.category, \r\n"
+			  		+ "    SUM(transaction.amount) AS amount\r\n"
+			  		+ "FROM \r\n"
+			  		+ "    transaction\r\n"
+			  		+ "JOIN \r\n"
+			  		+ "    items ON transaction.itemid = items.iditems\r\n"
+			  		+ "WHERE \r\n"
+			  		+ "    items.type = 'expense'\r\n"
+			  		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())\r\n"
+			  		+ "    AND MONTH(transaction.date) = "+month+"\r\n"
+			  		+ "GROUP BY \r\n"
+			  		+ "    items.category;\r\n"
+			  		+ "");
+			  
+			  ObservableList<PieChart.Data> piedata= FXCollections.observableArrayList();
+			  while (rs.next()) 
+			  { 
+				  String category=rs.getString("category");
+				  double amount=rs.getDouble("amount");
+				  amount=Math.abs(amount);
+				  piedata.add(new PieChart.Data(category, amount));
+			  }
+			  PieChart piechart= new PieChart(piedata);
+			  piechart.setMinWidth(Design.GetX(36));
+			  piechart.setTitle("Spending");
+			  Design.Layout(piechart, Design.GetX(50), Design.GetY(38), roothome);
+			  }
+			  catch (SQLException e) 
+			  { // TODO Auto-generated catch block
+			  e.printStackTrace();
+			  System.out.println("flop with try");
+			  }
+		
 	}
 }
