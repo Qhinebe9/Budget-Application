@@ -11,6 +11,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -177,19 +178,18 @@ public class Homepage extends Canvas implements Navigation, Design{
          cmbMonths.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 15px; -fx-font: 18px \"Comic Sans Ms\";");
          Design.Layout(cmbMonths, Design.GetX(65), Design.GetY(1), roothome);
          cmbMonths.setPrefSize(100, 30);
-         Date date= new Date();
-         int intdate= date.getMonth();
-         cmbMonths.setPromptText(strMonths.get(intdate));
+         LocalDate date=  LocalDate.now();
+         int intdate= date.getMonthValue();
+         Populate(roothome,intdate);
+         cmbMonths.setPromptText(strMonths.get(intdate-1));
          cmbMonths.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
              @Override
              public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                  // Event triggered when a new selection is made
-                 System.out.println("Selected Item: " + newValue);
                  int month=cmbMonths.getSelectionModel().getSelectedIndex();
                  month++;
-                 System.out.println("month before: "+month);
                  if (month==0) {
-                	 month=date.getMonth();
+                	 month=date.getMonthValue();
                  }
                  Populate(roothome,month);
              }
@@ -279,7 +279,6 @@ public class Homepage extends Canvas implements Navigation, Design{
 	private void Populate(Group roothome,int month) {
 		//Spending graph
         try { 
-        	
         	//Calculating spending from db
             Label lblpercentagespending=new Label();
             try {
@@ -291,14 +290,23 @@ public class Homepage extends Canvas implements Navigation, Design{
    			  {
    				  dblbudget+=rs.getDouble(1);
    			  }
-   			 rs=stm.executeQuery("SELECT amount AS transaction_amount\r\n"
-                      + "FROM transaction JOIN items i\r\n"
-                      + "ON transaction.itemid = i.iditems");
+   			 rs=stm.executeQuery("SELECT \r\n"
+ 			  		+ "    SUM(transaction.amount) AS amount\r\n"
+ 			  		+ "FROM \r\n"
+ 			  		+ "    transaction\r\n"
+ 			  		+ "JOIN \r\n"
+ 			  		+ "    items ON transaction.itemid = items.iditems\r\n"
+ 			  		+ "WHERE \r\n"
+ 			  		+ "    items.type = 'expense'\r\n"
+ 			  		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())\r\n"
+ 			  		+ "    AND MONTH(transaction.date) = "+month+"\r\n"
+ 			  		+ "");
    			if (rs.next())
  			  {
  				  dblspent+=rs.getDouble(1);
  			  }
-   			  double dblremaining=dblbudget-dblspent;
+   			dblspent=Math.abs(dblspent);
+   			  double dblremaining=dblspent;
    			  stm.close();
    			  int spendingpercent=(int) (dblremaining/dblbudget*100);
    			  lblpercentagespending.setText( spendingpercent+"% Spent");
@@ -306,10 +314,11 @@ public class Homepage extends Canvas implements Navigation, Design{
    			  
    			  
    			//Stroking spending rectangles
+   			 
    		         Canvas spendingcanvas= new Canvas(1000,200); 
-   		      roothome.getChildren().remove(spendingcanvas);
    		         GraphicsContext gc= spendingcanvas.getGraphicsContext2D();
-   		         Design.Layout(spendingcanvas, Design.GetX(25), Design.GetY(5), roothome);
+   		         RemoveNode(roothome, spendingcanvas);
+   		         Design.Layout(spendingcanvas, Design.GetX(25), Design.GetY(5), roothome); 
    		         gc.setStroke(Color.FLORALWHITE);
    		         gc.setFill(Color.FLORALWHITE);
    		         gc.fillRoundRect(Design.GetX(25), Design.GetY(7),Design.GetX(40), 40,40, 40);
@@ -325,6 +334,7 @@ public class Homepage extends Canvas implements Navigation, Design{
    		         
 
    		         lblpercentagespending.setFont(Design.ButtonFont());
+   		         RemoveNode(roothome,lblpercentagespending);
    		         Design.Layout(lblpercentagespending, Design.GetX(65), Design.GetY(18), roothome);
    		       //Available balance handling
    		         Label lblavail= new Label();
@@ -335,6 +345,7 @@ public class Homepage extends Canvas implements Navigation, Design{
    		         lblmoneyspent.setFont(Design.H2Font());
    		         lblmoneyspent.setText("Monthly Spending:"+"R"+strspent);
    		         lblmoneyspent.setFont(Design.H2Font());
+   		         RemoveNode(roothome,lblmoneyspent);
    		         Design.Layout(lblmoneyspent, Design.GetX(60), Design.GetY(6), roothome);
    		} catch (SQLException e) {
    			// TODO Auto-generated catch block
@@ -370,7 +381,9 @@ public class Homepage extends Canvas implements Navigation, Design{
 			  PieChart piechart= new PieChart(piedata);
 			  piechart.setMinWidth(Design.GetX(36));
 			  piechart.setTitle("Spending");
+			  RemoveNode(roothome,piechart);
 			  Design.Layout(piechart, Design.GetX(50), Design.GetY(38), roothome);
+			 
 			  }
 			  catch (SQLException e) 
 			  { // TODO Auto-generated catch block
@@ -378,5 +391,15 @@ public class Homepage extends Canvas implements Navigation, Design{
 			  System.out.println("flop with try");
 			  }
 		
+	}
+	void RemoveNode(Group roothome, Node obj) {
+		int Index=roothome.getChildren().indexOf(obj);
+		System.out.println(Index);
+		      if (Index>-1) {
+		    	  roothome.getChildren().remove(Index);
+		    	  System.out.println("removed");
+		    	  
+		      }
+	      
 	}
 }
