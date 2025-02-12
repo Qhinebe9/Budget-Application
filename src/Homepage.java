@@ -180,7 +180,116 @@ public class Homepage extends Canvas implements Navigation, Design{
          cmbMonths.setPrefSize(100, 30);
          LocalDate date=  LocalDate.now();
          int intdate= date.getMonthValue();
-         Populate(roothome,intdate);
+       //Spending graph
+         try { 
+         	//Calculating spending from db
+             Label lblpercentagespending=new Label();
+             try {
+    			stm= Main.con.createStatement();
+    			  rs=stm.executeQuery("SELECT sum(setAmount) FROM items Where type='expense'");
+    			  double dblbudget=0;
+    			  double dblspent=0;
+    			  if (rs.next())
+    			  {
+    				  dblbudget+=rs.getDouble(1);
+    			  }
+    			 rs=stm.executeQuery("SELECT \r\n"
+  			  		+ "    SUM(transaction.amount) AS amount\r\n"
+  			  		+ "FROM \r\n"
+  			  		+ "    transaction\r\n"
+  			  		+ "JOIN \r\n"
+  			  		+ "    items ON transaction.itemid = items.iditems\r\n"
+  			  		+ "WHERE \r\n"
+  			  		+ "    items.type = 'expense'\r\n"
+  			  		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())\r\n"
+  			  		+ "    AND MONTH(transaction.date) = "+intdate+"\r\n"
+  			  		+ "");
+    			if (rs.next())
+  			  {
+  				  dblspent+=rs.getDouble(1);
+  			  }
+    			dblspent=Math.abs(dblspent);
+    			  double dblremaining=dblspent;
+    			  stm.close();
+    			  int spendingpercent=(int) (dblremaining/dblbudget*100);
+    			  lblpercentagespending.setText( spendingpercent+"% Spent");
+    			  double barlength=Design.GetX(40)*spendingpercent/100;
+    			  
+    			  
+    			//Stroking spending rectangles
+    			 
+    		         Canvas spendingcanvas= new Canvas(1000,200); 
+    		         GraphicsContext gc= spendingcanvas.getGraphicsContext2D();
+    		         Design.Layout(spendingcanvas, Design.GetX(25), Design.GetY(5), roothome); 
+    		         gc.setStroke(Color.FLORALWHITE);
+    		         gc.setFill(Color.FLORALWHITE);
+    		         gc.fillRoundRect(Design.GetX(25), Design.GetY(7),Design.GetX(40), 40,40, 40);
+    		       //percentage spending
+    				 if (spendingpercent<50)
+    					 gc.setFill(Color.LIGHTGREEN);
+    				 else if(spendingpercent>=50 && spendingpercent<80)
+    					 gc.setFill(Color.ORANGE);
+    				 else if (spendingpercent>=80 &&spendingpercent<=100)
+    					 gc.setFill(Color.RED);
+    		         gc.fillRoundRect(Design.GetX(25),Design.GetY(7),barlength,40,40,40);
+    		         
+    		         
+
+    		         lblpercentagespending.setFont(Design.ButtonFont());
+    		         Design.Layout(lblpercentagespending, Design.GetX(65), Design.GetY(18), roothome);
+    		       //Available balance handling
+    		         Label lblavail= new Label();
+    		         String strspent=Double.toString(dblremaining);
+    		      //displaying money spent label
+    		         Label lblmoneyspent= new Label("Monthly Spending:");
+    		         lblmoneyspent.setFont(Design.H2Font());
+    		         lblmoneyspent.setText("Monthly Spending:"+"R"+strspent);
+    		         lblmoneyspent.setFont(Design.H2Font());
+    		         Design.Layout(lblmoneyspent, Design.GetX(60), Design.GetY(6), roothome);
+    		         System.out.println("Money Spent label: "+roothome.getChildren().indexOf(lblmoneyspent));
+    		} catch (SQLException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+             
+             
+ 		      Statement stm= Main.con.createStatement(); 
+ 			  //ResultSet rs=stm.executeQuery("Select category, sum(actualAmount) as amount from items where type='expense' group by category"); 
+ 			  ResultSet rs=stm.executeQuery("SELECT \r\n"
+ 			  		+ "    items.category, \r\n"
+ 			  		+ "    SUM(transaction.amount) AS amount\r\n"
+ 			  		+ "FROM \r\n"
+ 			  		+ "    transaction\r\n"
+ 			  		+ "JOIN \r\n"
+ 			  		+ "    items ON transaction.itemid = items.iditems\r\n"
+ 			  		+ "WHERE \r\n"
+ 			  		+ "    items.type = 'expense'\r\n"
+ 			  		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())\r\n"
+ 			  		+ "    AND MONTH(transaction.date) = "+intdate+"\r\n"
+ 			  		+ "GROUP BY \r\n"
+ 			  		+ "    items.category;\r\n"
+ 			  		+ "");
+ 			  
+ 			  ObservableList<PieChart.Data> piedata= FXCollections.observableArrayList();
+ 			  while (rs.next()) 
+ 			  { 
+ 				  String category=rs.getString("category");
+ 				  double amount=rs.getDouble("amount");
+ 				  amount=Math.abs(amount);
+ 				  piedata.add(new PieChart.Data(category, amount));
+ 			  }
+ 			  PieChart piechart= new PieChart(piedata);
+ 			  piechart.setMinWidth(Design.GetX(36));
+ 			  piechart.setTitle("Spending");
+ 			  Design.Layout(piechart, Design.GetX(50), Design.GetY(38), roothome);
+ 			 System.out.println("Piechart: "+roothome.getChildren().indexOf(piechart));
+ 			 
+ 			  }
+ 			  catch (SQLException e) 
+ 			  { // TODO Auto-generated catch block
+ 			  e.printStackTrace();
+ 			  System.out.println("flop with try");
+ 			  }
          cmbMonths.setPromptText(strMonths.get(intdate-1));
          cmbMonths.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
              @Override
@@ -317,8 +426,9 @@ public class Homepage extends Canvas implements Navigation, Design{
    			 
    		         Canvas spendingcanvas= new Canvas(1000,200); 
    		         GraphicsContext gc= spendingcanvas.getGraphicsContext2D();
-   		         RemoveNode(roothome, spendingcanvas);
-   		         Design.Layout(spendingcanvas, Design.GetX(25), Design.GetY(5), roothome); 
+   		         spendingcanvas.setLayoutX(Design.GetX(25));
+   		         spendingcanvas.setLayoutY(Design.GetY(5));
+   		         roothome.getChildren().set(7, spendingcanvas);
    		         gc.setStroke(Color.FLORALWHITE);
    		         gc.setFill(Color.FLORALWHITE);
    		         gc.fillRoundRect(Design.GetX(25), Design.GetY(7),Design.GetX(40), 40,40, 40);
@@ -334,19 +444,20 @@ public class Homepage extends Canvas implements Navigation, Design{
    		         
 
    		         lblpercentagespending.setFont(Design.ButtonFont());
-   		         RemoveNode(roothome,lblpercentagespending);
-   		         Design.Layout(lblpercentagespending, Design.GetX(65), Design.GetY(18), roothome);
+   		         lblpercentagespending.setLayoutX(Design.GetX(65));
+   		         lblpercentagespending.setLayoutY(Design.GetY(18)); 
+   		         roothome.getChildren().set(8, lblpercentagespending);
    		       //Available balance handling
    		         Label lblavail= new Label();
    		         String strspent=Double.toString(dblremaining);
    		      //displaying money spent label
    		         Label lblmoneyspent= new Label("Monthly Spending:");
-   		      roothome.getChildren().remove(lblmoneyspent);
    		         lblmoneyspent.setFont(Design.H2Font());
    		         lblmoneyspent.setText("Monthly Spending:"+"R"+strspent);
    		         lblmoneyspent.setFont(Design.H2Font());
-   		         RemoveNode(roothome,lblmoneyspent);
-   		         Design.Layout(lblmoneyspent, Design.GetX(60), Design.GetY(6), roothome);
+   		         lblmoneyspent.setLayoutX(Design.GetX(60));
+   		         lblmoneyspent.setLayoutY(Design.GetY(6)); 
+   		         roothome.getChildren().set(9, lblmoneyspent);
    		} catch (SQLException e) {
    			// TODO Auto-generated catch block
    			e.printStackTrace();
@@ -381,8 +492,9 @@ public class Homepage extends Canvas implements Navigation, Design{
 			  PieChart piechart= new PieChart(piedata);
 			  piechart.setMinWidth(Design.GetX(36));
 			  piechart.setTitle("Spending");
-			  RemoveNode(roothome,piechart);
-			  Design.Layout(piechart, Design.GetX(50), Design.GetY(38), roothome);
+			  piechart.setLayoutX(Design.GetX(50));
+			  piechart.setLayoutY(Design.GetY(38));
+			  roothome.getChildren().set(10, piechart);
 			 
 			  }
 			  catch (SQLException e) 
@@ -391,15 +503,5 @@ public class Homepage extends Canvas implements Navigation, Design{
 			  System.out.println("flop with try");
 			  }
 		
-	}
-	void RemoveNode(Group roothome, Node obj) {
-		int Index=roothome.getChildren().indexOf(obj);
-		System.out.println(Index);
-		      if (Index>-1) {
-		    	  roothome.getChildren().remove(Index);
-		    	  System.out.println("removed");
-		    	  
-		      }
-	      
 	}
 }

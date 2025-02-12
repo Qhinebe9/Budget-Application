@@ -1,83 +1,61 @@
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.chart.BarChart;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
-import javafx.scene.control.Button;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.MoveTo;
+import javafx.scene.shape.Path;
+import javafx.scene.shape.QuadCurveTo;
 import javafx.stage.Stage;
 
 public class ai extends Application {
 
     @Override
     public void start(Stage stage) {
-        // Create the X and Y axes
-        CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabel("Category");
-
-        NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Value");
-
-        // Create the bar chart
-        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
-        barChart.setTitle("Dynamically Updated Grouped Bar Chart");
-
-        // Create the initial data series
-        XYChart.Series<String, Number> series1 = new XYChart.Series<>();
-        series1.setName("Category A");
-
-        XYChart.Series<String, Number> series2 = new XYChart.Series<>();
-        series2.setName("Category B");
-
-        series1.getData().add(new XYChart.Data<>("2025", 50));
-        series2.getData().add(new XYChart.Data<>("2025", 30));
-
-        series1.getData().add(new XYChart.Data<>("2026", 80));
-        series2.getData().add(new XYChart.Data<>("2026", 40));
-
-        // Add the series to the chart
-        barChart.getData().addAll(series1, series2);
-
-        // Create a button to dynamically update the chart
-        Button updateButton = new Button("Update Chart");
-        updateButton.setOnAction(event -> updateChart(barChart));
-
-        // Add the chart and button to a layout
+        // Create a StackPane to hold the line chart
         StackPane root = new StackPane();
-        root.getChildren().add(barChart);
-        root.getChildren().add(updateButton);
+        
+        // Example data points (x, y)
+        double[] xPoints = {1, 2, 3, 4, 5};
+        double[] yPoints = {5, 7, 6, 8, 9};
+        
+        // Manually scale factors to fit the data points into the window size
+        double xScale = 100;  // Scale factor for the x-axis
+        double yScale = 50;   // Scale factor for the y-axis
 
-        // Set the button position
-        StackPane.setAlignment(updateButton, javafx.geometry.Pos.BOTTOM_CENTER);
+        // Create a Path to draw the curve
+        Path path = new Path();
+        path.setStroke(Color.BLUE); // Set the line color
+        path.setStrokeWidth(2); // Set the line width
 
-        // Set up the stage and scene
+        // Move to the first point (Start point)
+        MoveTo moveTo = new MoveTo();
+        moveTo.setX(xPoints[0] * xScale);  // Scale the x-coordinate
+        moveTo.setY(yPoints[0] * yScale);  // Scale the y-coordinate
+        path.getElements().add(moveTo); // Add MoveTo to the path
+
+        // Create curves between points using QuadCurveTo
+        for (int i = 1; i < xPoints.length - 1; i++) {
+            double ctrlX = (xPoints[i] + xPoints[i + 1]) / 2;  // Control point X (midpoint)
+            double ctrlY = (yPoints[i] + yPoints[i + 1]) / 2;  // Control point Y (midpoint)
+
+            // Create a quadratic curve between two points
+            QuadCurveTo quadCurve = new QuadCurveTo();
+            quadCurve.setControlX(ctrlX * xScale);  // Scale control point X
+            quadCurve.setControlY(ctrlY * yScale);  // Scale control point Y
+            quadCurve.setX(xPoints[i + 1] * xScale);  // Scale the x-coordinate
+            quadCurve.setY(yPoints[i + 1] * yScale);  // Scale the y-coordinate
+            
+            path.getElements().add(quadCurve); // Add the curve to the path
+        }
+
+        // Add the curve path to the root pane
+        root.getChildren().add(path);
+
+        // Set the scene with the graph and axes
         Scene scene = new Scene(root, 800, 600);
-        stage.setTitle("JavaFX Grouped Bar Chart");
         stage.setScene(scene);
+        stage.setTitle("Curved Line Graph in JavaFX");
         stage.show();
-    }
-
-    // Method to update the chart dynamically
-    private void updateChart(BarChart<String, Number> barChart) {
-        // Clear current data
-        barChart.getData().clear();
-
-        // Create new data for the chart
-        XYChart.Series<String, Number> series1 = new XYChart.Series<>();
-        series1.setName("Category A");
-
-        XYChart.Series<String, Number> series2 = new XYChart.Series<>();
-        series2.setName("Category B");
-
-        series1.getData().add(new XYChart.Data<>("2025", 60));
-        series2.getData().add(new XYChart.Data<>("2025", 20));
-
-        series1.getData().add(new XYChart.Data<>("2026", 70));
-        series2.getData().add(new XYChart.Data<>("2026", 50));
-
-        // Add the updated data to the chart
-        barChart.getData().addAll(series1, series2);
     }
 
     public static void main(String[] args) {
