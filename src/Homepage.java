@@ -246,7 +246,6 @@ public class Homepage extends Canvas implements Navigation, Design{
     		         lblmoneyspent.setText("Monthly Spending:"+"R"+strspent);
     		         lblmoneyspent.setFont(Design.H2Font());
     		         Design.Layout(lblmoneyspent, Design.GetX(60), Design.GetY(6), roothome);
-    		         System.out.println("Money Spent label: "+roothome.getChildren().indexOf(lblmoneyspent));
     		} catch (SQLException e) {
     			// TODO Auto-generated catch block
     			e.printStackTrace();
@@ -282,7 +281,6 @@ public class Homepage extends Canvas implements Navigation, Design{
  			  piechart.setMinWidth(Design.GetX(36));
  			  piechart.setTitle("Spending");
  			  Design.Layout(piechart, Design.GetX(50), Design.GetY(38), roothome);
- 			 System.out.println("Piechart: "+roothome.getChildren().indexOf(piechart));
  			 
  			  }
  			  catch (SQLException e) 

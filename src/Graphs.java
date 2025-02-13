@@ -31,6 +31,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
@@ -54,6 +55,7 @@ import javafx.stage.*;
 public class Graphs extends Canvas implements Navigation, Design{
 	
 	Scene scene;
+	Button btnback;
 	String name,path,strnetpay;
 	double dblnetpay;
 	public Button btntransact;
@@ -63,6 +65,7 @@ public class Graphs extends Canvas implements Navigation, Design{
 	ImageView imgprofileview;
 	ResultSet rs;
 	Statement stm;
+	String type="";
 	Image imgprofile;
 	public File txtplan= new File("docs/Plan.txt");
 	public Graphs()
@@ -88,6 +91,16 @@ public class Graphs extends Canvas implements Navigation, Design{
          lblrecent.setText("Analytics");
          lblrecent.setFont(Design.HeadingFont());
          Design.Layout(lblrecent, Design.GetX(45), Design.GetY(6), roothome);
+         
+         
+       //back button
+		 btnback= new Button("Back");
+		 btnback.setPrefSize(100, 30);
+		 Design.Layout(btnback, 20, 20, roothome);
+		 btnback.setFont(Design.ButtonFont());
+		 btnback.setStyle(Design.ButtonStyle());
+		 
+		 
          
    
 	      //Section for Budget VS Actual amount
@@ -141,6 +154,65 @@ public class Graphs extends Canvas implements Navigation, Design{
 		        }catch(SQLException ex) {
 		        	ex.printStackTrace();
 		        }
+		        
+		        
+		      //Monthly graph
+		         try { 
+				      Statement stm= Main.con.createStatement(); 
+					  rs=stm.executeQuery("SELECT \r\n"
+						  		+ "    SUM(transaction.amount) AS amount,\r\n"
+						  		+ "DAY(transaction.date) as day FROM \r\n"
+						  		+ "    transaction\r\n"
+						  		+ "JOIN \r\n"
+						  		+ "    items ON transaction.itemid = items.iditems\r\n"
+						  		+ "WHERE MONTH(transaction.date)=1 GROUP BY \r\n"
+						  		+ "    DAY(transaction.date) ;\r\n"
+						  		+ "");
+					  NumberAxis xAxisday= new NumberAxis();
+					  xAxisday.setLabel("Day of the Month");
+					  NumberAxis yAxisday= new NumberAxis();
+					  yAxisday.setLabel("Amount");
+					  LineChart<Number,Number> daylineChart = new LineChart<>(xAxisday,yAxisday);
+					  daylineChart.setTitle("Monthly Balance");
+					  XYChart.Series<Number, Number> dayseries= new XYChart.Series<>();
+					  dayseries.setName("Spending on specific dates");
+					  
+					  while (rs.next()) 
+					  { 
+						  double amount=rs.getDouble("amount");
+						  System.out.println(amount);
+						  type="addition";
+						  if (amount<0) {
+							  type="deduction";  
+						  }
+						  amount=Math.abs(amount);
+						  int day=rs.getInt("day");
+						  dayseries.getData().add(new XYChart.Data<>(day,amount));
+					  }
+					  daylineChart.getData().add(dayseries);	  
+					  Design.Layout(daylineChart, Design.GetX(50), Design.GetY(10), roothome);
+					  for (XYChart.Data<Number, Number> data : dayseries.getData()) {
+				            // Tooltip for hover
+				            Tooltip tooltip = new Tooltip("Day: " + data.getXValue()+"\nType: "+type+  "\nAmount:R " + data.getYValue());
+				            Tooltip.install(data.getNode(), tooltip);
+
+				            // Visual feedback on hover
+				            data.getNode().setOnMouseEntered(event -> data.getNode().setStyle("-fx-background-color: #FFA500;"));
+				            data.getNode().setOnMouseExited(event -> data.getNode().setStyle("-fx-background-color: #000000;"));
+
+				            // Click functionality
+				            data.getNode().setOnMouseClicked(event -> {
+				                // Display additional information in an alert dialog
+				                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+				                alert.setTitle("Data Point Clicked");
+				                alert.setHeaderText("Details for Data Point");
+				                alert.setContentText("Day: " + data.getXValue()+"\nType: "+type+ "\nAmount:R " + data.getYValue());
+				                alert.showAndWait();
+				            });
+				        }
+		         }catch(SQLException ex) {
+		     		ex.printStackTrace();
+		     	}
 	   
          
        
@@ -148,52 +220,64 @@ public class Graphs extends Canvas implements Navigation, Design{
         
          
          
-         //Spending graph
-         try { 
-		      Statement stm= Main.con.createStatement(); 
+         //Yearly Balance graph
+         try {  
 			  rs=stm.executeQuery("SELECT \r\n"
-				  		+ "    SUM(transaction.amount) AS amount\r\n"
-				  		+ "FROM \r\n"
+				  		+ "    SUM(transaction.amount) AS amount,\r\n"
+				  		+ "MONTH(transaction.date) as month FROM \r\n"
 				  		+ "    transaction\r\n"
 				  		+ "JOIN \r\n"
 				  		+ "    items ON transaction.itemid = items.iditems\r\n"
 				  		+ "GROUP BY \r\n"
 				  		+ "    MONTH(transaction.date) ;\r\n"
 				  		+ "");
-			  NumberAxis xAxis= new NumberAxis();
+			  ObservableList<String> strMonths= FXCollections.observableArrayList("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
+			  CategoryAxis xAxis= new CategoryAxis();
+			  xAxis.setLabel("Months");
 			  NumberAxis yAxis= new NumberAxis();
-			  double[] xPoints= {1,2,3,4,5,6,7,8,9,10,11,12};
-			  double[] ypoints= new double[12];
-			  Path path= new Path();
-			  path.setStroke(Color.BLUE);
-			  path.setStrokeWidth(4);
+			  yAxis.setLabel("Balance");
+			  LineChart<String,Number> lineChart = new LineChart<>(xAxis,yAxis);
+			  lineChart.setTitle("Yearly Balance");
+			  XYChart.Series<String, Number> series= new XYChart.Series<>();
+			  series.setName("Spending for that month");
 			  int index=0;
 			  while (rs.next()) 
 			  { 
 				  double amount=rs.getDouble("amount");
 				  amount=Math.abs(amount);
-				  ypoints[index]=amount;
+				  series.getData().add(new XYChart.Data<>(strMonths.get(index),amount));
 				  index++;
 			  }
-			  MoveTo moveTo = new MoveTo();
-		        moveTo.setX(xAxis.getDisplayPosition(xPoints[0]));
-		        moveTo.setY(yAxis.getDisplayPosition(ypoints[0]));
-		        path.getElements().add(moveTo);
-			  for (int k=1; k<xPoints.length-1;k++) {
-				  double ctrlX=(xPoints[k]+xPoints[k+1])/2;
-				  double ctrlY = (ypoints[k] + ypoints[k + 1]) / 2; 
-				  QuadCurveTo quadcurve = new QuadCurveTo();
-				  quadcurve.setControlX(xAxis.getDisplayPosition(ctrlX));
-				  quadcurve.setControlY(yAxis.getDisplayPosition(ctrlY));
-				  quadcurve.setX(xAxis.getDisplayPosition(xPoints[k + 1]));
-		          quadcurve.setY(yAxis.getDisplayPosition(ypoints[k + 1]));
-		          path.getElements().add(quadcurve);
-		            
-		            
-				  
-				  
-			  }
-			  Design.Layout(path, Design.GetX(50), Design.GetY(10), roothome);
+			  lineChart.getData().add(series);	  
+			  Design.Layout(lineChart, Design.GetX(10), Design.GetY(55), roothome);
+			  for (XYChart.Data<String, Number> data : series.getData()) {
+		            // Tooltip for hover
+		            Tooltip tooltip = new Tooltip("Month: " + data.getXValue()+  "\nAmount:R " + data.getYValue());
+		            Tooltip.install(data.getNode(), tooltip);
+
+		            // Visual feedback on hover
+		            data.getNode().setOnMouseEntered(event -> data.getNode().setStyle("-fx-background-color: #FFA500;"));
+		            data.getNode().setOnMouseExited(event -> data.getNode().setStyle("-fx-background-color: #000000;"));
+
+		            // Click functionality
+		            data.getNode().setOnMouseClicked(event -> {
+		                // Display additional information in an alert dialog
+		                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+		                alert.setTitle("Data Point Clicked");
+		                alert.setHeaderText("Details for Data Point");
+		                alert.setContentText("Month: " + data.getXValue()+"\nAmount:R " + data.getYValue());
+		                alert.showAndWait();
+		            });
+		        }
+			  
+			  
+			//btnback processing
+		         btnback.setOnAction(e->{
+		        	 Navigation.toHomepage();
+		         });
+		         
+		         
+		         
          //Adding components to root node
 		 roothome.getStyleClass().add("color-palette");
 		 scene= new Scene(roothome);
@@ -205,6 +289,7 @@ public class Graphs extends Canvas implements Navigation, Design{
 	}catch(SQLException ex) {
 		ex.printStackTrace();
 	}
+		        
 	}
 
 	public Scene getscene()
