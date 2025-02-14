@@ -18,8 +18,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
-
-
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -67,6 +67,9 @@ public class Graphs extends Canvas implements Navigation, Design{
 	Statement stm;
 	String type="";
 	Image imgprofile;
+	LocalDate date=  LocalDate.now();
+    int intdate= date.getMonthValue();
+	Alert alert = new Alert(Alert.AlertType.INFORMATION);
 	public File txtplan= new File("docs/Plan.txt");
 	public Graphs()
 	{
@@ -87,10 +90,6 @@ public class Graphs extends Canvas implements Navigation, Design{
          
          
          //Label for recent transactions
-         Label lblrecent=new Label();
-         lblrecent.setText("Analytics");
-         lblrecent.setFont(Design.HeadingFont());
-         Design.Layout(lblrecent, Design.GetX(45), Design.GetY(6), roothome);
          
          
        //back button
@@ -99,6 +98,10 @@ public class Graphs extends Canvas implements Navigation, Design{
 		 Design.Layout(btnback, 20, 20, roothome);
 		 btnback.setFont(Design.ButtonFont());
 		 btnback.setStyle(Design.ButtonStyle());
+		 
+		 
+		 //current month
+		 
 		 
 		 
          
@@ -150,7 +153,7 @@ public class Graphs extends Canvas implements Navigation, Design{
 				      seriesList.add(series1);
 					  seriesList.add(series2); 
 				      stackedbarchart.getData().addAll(seriesList);
-				      Design.Layout(stackedbarchart, Design.GetX(10), Design.GetY(6), roothome);
+				      Design.Layout(stackedbarchart, Design.GetX(10), Design.GetY(0), roothome);
 		        }catch(SQLException ex) {
 		        	ex.printStackTrace();
 		        }
@@ -158,6 +161,7 @@ public class Graphs extends Canvas implements Navigation, Design{
 		        
 		      //Monthly graph
 		         try { 
+		        	 
 				      Statement stm= Main.con.createStatement(); 
 					  rs=stm.executeQuery("SELECT \r\n"
 						  		+ "    SUM(transaction.amount) AS amount,\r\n"
@@ -165,7 +169,7 @@ public class Graphs extends Canvas implements Navigation, Design{
 						  		+ "    transaction\r\n"
 						  		+ "JOIN \r\n"
 						  		+ "    items ON transaction.itemid = items.iditems\r\n"
-						  		+ "WHERE MONTH(transaction.date)=1 GROUP BY \r\n"
+						  		+ "WHERE MONTH(transaction.date)="+intdate+" GROUP BY \r\n"
 						  		+ "    DAY(transaction.date) ;\r\n"
 						  		+ "");
 					  NumberAxis xAxisday= new NumberAxis();
@@ -173,27 +177,26 @@ public class Graphs extends Canvas implements Navigation, Design{
 					  NumberAxis yAxisday= new NumberAxis();
 					  yAxisday.setLabel("Amount");
 					  LineChart<Number,Number> daylineChart = new LineChart<>(xAxisday,yAxisday);
-					  daylineChart.setTitle("Monthly Balance");
+					  daylineChart.setTitle("Daily Spending");
 					  XYChart.Series<Number, Number> dayseries= new XYChart.Series<>();
-					  dayseries.setName("Spending on specific dates");
-					  
+					  dayseries.setName("Hover/click data point to view more info.");
 					  while (rs.next()) 
 					  { 
 						  double amount=rs.getDouble("amount");
-						  System.out.println(amount);
-						  type="addition";
-						  if (amount<0) {
-							  type="deduction";  
-						  }
-						  amount=Math.abs(amount);
 						  int day=rs.getInt("day");
-						  dayseries.getData().add(new XYChart.Data<>(day,amount));
+						  if (amount<0)
+							  type="deduction";
+						  else
+							  type="addition";
+						  amount=Math.abs(amount);
+						  dayseries.getData().add(new XYChart.Data<>(day,amount,type));
 					  }
 					  daylineChart.getData().add(dayseries);	  
-					  Design.Layout(daylineChart, Design.GetX(50), Design.GetY(10), roothome);
+					  Design.Layout(daylineChart, Design.GetX(50), Design.GetY(0), roothome);
+					  System.out.println(roothome.getChildren().indexOf(daylineChart));
 					  for (XYChart.Data<Number, Number> data : dayseries.getData()) {
 				            // Tooltip for hover
-				            Tooltip tooltip = new Tooltip("Day: " + data.getXValue()+"\nType: "+type+  "\nAmount:R " + data.getYValue());
+				            Tooltip tooltip = new Tooltip("Day: " + data.getXValue()+"\nType: "+data.getExtraValue()+  "\nAmount:R " + data.getYValue().doubleValue());
 				            Tooltip.install(data.getNode(), tooltip);
 
 				            // Visual feedback on hover
@@ -203,16 +206,44 @@ public class Graphs extends Canvas implements Navigation, Design{
 				            // Click functionality
 				            data.getNode().setOnMouseClicked(event -> {
 				                // Display additional information in an alert dialog
-				                Alert alert = new Alert(Alert.AlertType.INFORMATION);
 				                alert.setTitle("Data Point Clicked");
 				                alert.setHeaderText("Details for Data Point");
-				                alert.setContentText("Day: " + data.getXValue()+"\nType: "+type+ "\nAmount:R " + data.getYValue());
+				                if (data.getYValue().doubleValue()<0)
+				                	type="deduction";
+				                else
+				                	type="addition";
+				                alert.setContentText("Day: " + data.getXValue()+"\nType: "+data.getExtraValue()+ "\nAmount:R " +data.getYValue());
 				                alert.showAndWait();
 				            });
 				        }
 		         }catch(SQLException ex) {
 		     		ex.printStackTrace();
 		     	}
+		         
+		         
+		         
+		         //Combobox processing
+		         ObservableList<String> strMonths= FXCollections.observableArrayList("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
+		         ComboBox<String> cmbMonths= new ComboBox<String>(strMonths);
+		         cmbMonths.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 15px; -fx-font: 18px \"Comic Sans Ms\";");
+		         Design.Layout(cmbMonths, Design.GetX(85), Design.GetY(3), roothome);
+		         cmbMonths.setPrefSize(100, 30);
+		         
+		         cmbMonths.setPromptText(strMonths.get(intdate-1));
+		         cmbMonths.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+		             @Override
+		             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+		                 // Event triggered when a new selection is made
+		                 int month=cmbMonths.getSelectionModel().getSelectedIndex();
+		                 month++;
+		                 if (month==0) {
+		                	 month=date.getMonthValue();
+		                 }
+		                 Populate(roothome,month);
+		             }
+		         });
+		         cmbMonths.valueProperty().addListener((observable, oldValue, newValue) -> {
+		         });
 	   
          
        
@@ -231,15 +262,15 @@ public class Graphs extends Canvas implements Navigation, Design{
 				  		+ "GROUP BY \r\n"
 				  		+ "    MONTH(transaction.date) ;\r\n"
 				  		+ "");
-			  ObservableList<String> strMonths= FXCollections.observableArrayList("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
+			  strMonths= FXCollections.observableArrayList("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
 			  CategoryAxis xAxis= new CategoryAxis();
 			  xAxis.setLabel("Months");
 			  NumberAxis yAxis= new NumberAxis();
 			  yAxis.setLabel("Balance");
 			  LineChart<String,Number> lineChart = new LineChart<>(xAxis,yAxis);
-			  lineChart.setTitle("Yearly Balance");
+			  lineChart.setTitle("Monthly Balance");
 			  XYChart.Series<String, Number> series= new XYChart.Series<>();
-			  series.setName("Spending for that month");
+			  series.setName("Hover/click data point to view more info.");
 			  int index=0;
 			  while (rs.next()) 
 			  { 
@@ -249,7 +280,7 @@ public class Graphs extends Canvas implements Navigation, Design{
 				  index++;
 			  }
 			  lineChart.getData().add(series);	  
-			  Design.Layout(lineChart, Design.GetX(10), Design.GetY(55), roothome);
+			  Design.Layout(lineChart, Design.GetX(10), Design.GetY(48), roothome);
 			  for (XYChart.Data<String, Number> data : series.getData()) {
 		            // Tooltip for hover
 		            Tooltip tooltip = new Tooltip("Month: " + data.getXValue()+  "\nAmount:R " + data.getYValue());
@@ -296,4 +327,66 @@ public class Graphs extends Canvas implements Navigation, Design{
 	{
 		return scene;
 	}
+	private void Populate(Group roothome,int month) {
+		try { 
+       	 
+		      Statement stm= Main.con.createStatement(); 
+			  rs=stm.executeQuery("SELECT \r\n"
+				  		+ "    SUM(transaction.amount) AS amount,\r\n"
+				  		+ "DAY(transaction.date) as day FROM \r\n"
+				  		+ "    transaction\r\n"
+				  		+ "JOIN \r\n"
+				  		+ "    items ON transaction.itemid = items.iditems\r\n"
+				  		+ "WHERE MONTH(transaction.date)="+intdate+" GROUP BY \r\n"
+				  		+ "    DAY(transaction.date) ;\r\n"
+				  		+ "");
+			  NumberAxis xAxisday= new NumberAxis();
+			  xAxisday.setLabel("Day of the Month");
+			  NumberAxis yAxisday= new NumberAxis();
+			  yAxisday.setLabel("Amount");
+			  LineChart<Number,Number> daylineChart = new LineChart<>(xAxisday,yAxisday);
+			  daylineChart.setTitle("Daily Spending");
+			  XYChart.Series<Number, Number> dayseries= new XYChart.Series<>();
+			  dayseries.setName("Hover/click data point to view more info.");
+			  while (rs.next()) 
+			  { 
+				  double amount=rs.getDouble("amount");
+				  int day=rs.getInt("day");
+				  if (amount<0)
+					  type="deduction";
+				  else
+					  type="addition";
+				  amount=Math.abs(amount);
+				  dayseries.getData().add(new XYChart.Data<>(day,amount,type));
+			  }
+			  daylineChart.getData().add(dayseries);	  
+			  Design.Layout(daylineChart, Design.GetX(50), Design.GetY(0), roothome);
+			  System.out.println(roothome.getChildren().indexOf(daylineChart));
+			  for (XYChart.Data<Number, Number> data : dayseries.getData()) {
+		            // Tooltip for hover
+		            Tooltip tooltip = new Tooltip("Day: " + data.getXValue()+"\nType: "+data.getExtraValue()+  "\nAmount:R " + data.getYValue().doubleValue());
+		            Tooltip.install(data.getNode(), tooltip);
+
+		            // Visual feedback on hover
+		            data.getNode().setOnMouseEntered(event -> data.getNode().setStyle("-fx-background-color: #FFA500;"));
+		            data.getNode().setOnMouseExited(event -> data.getNode().setStyle("-fx-background-color: #000000;"));
+
+		            // Click functionality
+		            data.getNode().setOnMouseClicked(event -> {
+		                // Display additional information in an alert dialog
+		                alert.setTitle("Data Point Clicked");
+		                alert.setHeaderText("Details for Data Point");
+		                if (data.getYValue().doubleValue()<0)
+		                	type="deduction";
+		                else
+		                	type="addition";
+		                alert.setContentText("Day: " + data.getXValue()+"\nType: "+data.getExtraValue()+ "\nAmount:R " +data.getYValue());
+		                alert.showAndWait();
+		            });
+		        }
+       }catch(SQLException ex) {
+   		ex.printStackTrace();
+   	}
+		
+}
 }
