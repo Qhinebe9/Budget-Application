@@ -72,6 +72,11 @@ public class Homepage extends Canvas implements Navigation, Design{
          Design.Layout(lblname, 20, 160, roothome);
          
          
+         //Label for budget overview
+         Label lbloverview= new Label("");
+         lbloverview.setFont(Design.H2Font());
+         Design.Layout(lbloverview, Design.GetX(12), Design.GetY(4), roothome);
+         
          //Handling image
          Image image = new Image("file:data/App Profile pic.jpeg");
          ImageView imageView = new ImageView(image);
@@ -139,7 +144,7 @@ public class Homepage extends Canvas implements Navigation, Design{
 				      		+ "JOIN \r\n"
 				      		+ "    items ON transaction.itemid = items.iditems \r\n"
 				      		+ "WHERE \r\n"
-				      		+ "    items.type = 'expense' \r\n"
+				      		+ "    items.type = 'expense' and transaction.amount<0 \r\n"
 				      		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())    -- Current year\r\n"
 				      		+ "    AND MONTH(transaction.date) = MONTH(CURDATE())  -- Current month\r\n"
 				      		+ "GROUP BY \r\n"
@@ -200,7 +205,7 @@ public class Homepage extends Canvas implements Navigation, Design{
   			  		+ "JOIN \r\n"
   			  		+ "    items ON transaction.itemid = items.iditems\r\n"
   			  		+ "WHERE \r\n"
-  			  		+ "    items.type = 'expense'\r\n"
+  			  		+ "    items.type = 'expense'and transaction.amount<0\r\n"
   			  		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())\r\n"
   			  		+ "    AND MONTH(transaction.date) = "+intdate+"\r\n"
   			  		+ "");
@@ -208,12 +213,13 @@ public class Homepage extends Canvas implements Navigation, Design{
   			  {
   				  dblspent+=rs.getDouble(1);
   			  }
-    			dblspent=Math.abs(dblspent);
-    			  double dblremaining=dblspent;
+    			  dblspent=Math.abs(dblspent);
     			  stm.close();
-    			  int spendingpercent=(int) (dblremaining/dblbudget*100);
+    			  int spendingpercent=(int) (dblspent/dblbudget*100);
     			  lblpercentagespending.setText( spendingpercent+"% Spent");
     			  double barlength=Design.GetX(40)*spendingpercent/100;
+    			  double dblremaining=dblbudget-dblspent;
+    			  lbloverview.setText("Overview:"+ '\n'+"Budget: R"+dblbudget+'\n'+"Spent: R"+dblspent+'\n'+"Remaining: R"+dblremaining);
     			  
     			  
     			//Stroking spending rectangles
@@ -237,13 +243,10 @@ public class Homepage extends Canvas implements Navigation, Design{
 
     		         lblpercentagespending.setFont(Design.ButtonFont());
     		         Design.Layout(lblpercentagespending, Design.GetX(65), Design.GetY(18), roothome);
-    		       //Available balance handling
-    		         Label lblavail= new Label();
-    		         String strspent=Double.toString(dblremaining);
-    		      //displaying money spent label
+    		         //displaying money spent label
     		         Label lblmoneyspent= new Label("Monthly Spending:");
     		         lblmoneyspent.setFont(Design.H2Font());
-    		         lblmoneyspent.setText("Monthly Spending:"+"R"+strspent);
+    		         lblmoneyspent.setText("Monthly Spending:"+"R"+dblspent);
     		         lblmoneyspent.setFont(Design.H2Font());
     		         Design.Layout(lblmoneyspent, Design.GetX(60), Design.GetY(6), roothome);
     		} catch (SQLException e) {
