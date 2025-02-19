@@ -32,7 +32,7 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 import javafx.stage.Popup;
 
-public class NewUser extends Main implements Navigation {
+public class NewUser extends Main implements Navigation,Design {
 		
 		Scene scene;
 		String path=null;
@@ -71,55 +71,123 @@ public class NewUser extends Main implements Navigation {
 			 //Welcome and quote
 			 Label lblwelcome= new Label("Welcome Budgeteer!");
 			 lblwelcome.setFont(Design.HeadingFont());
-			 Design.Layout(lblwelcome, 100, 30, roothome);
+			 Design.Layout(lblwelcome, Design.GetX(40), Design.GetY(3), roothome);
 			 Label lblquote= new Label("'The budget is not just a collection of numbers, but an expression of our values and aspirations.'");
 	         lblquote.setFont(Design.ButtonFont());
-	         Design.Layout(lblquote, 20, 100, roothome);
+	         Design.Layout(lblquote, Design.GetX(25), Design.GetY(10), roothome);
 	         
 	         
 			 //
 			 //getting budget info setup
 			 //
-				/*
-				 * Label lblname= new Label("Please enter your name:"); lblname.setLayoutX(20);
-				 * lblname.setLayoutY(150); TextField txtname= new TextField("Name here");
-				 * txtname.setLayoutX(280); txtname.setLayoutY(150); //clearing
-				 * txtname.setOnMouseClicked(e-> { txtname.clear();
-				 * 
-				 * }); //profile picture setup Label lblprofilepic= new
-				 * Label("Set Profile picture"); lblprofilepic.setFont(font);
-				 * lblprofilepic.setLayoutX(20); lblprofilepic.setLayoutY(180); Button
-				 * btnselect= new Button("Set"); btnselect.setFont(font);
-				 * btnselect.setLayoutX(280); btnselect.setLayoutY(180);
-				 * btnselect.setStyle("-fx-background-radius: 15px;"); btnselect.setOnAction(e->
-				 * { File file; do { FileChooser fc= new FileChooser();
-				 * fc.setTitle("Choose Profile Picture"); fc.setInitialDirectory(new
-				 * File("C:")); file= fc.showOpenDialog(ps); if (file!=null) {
-				 * path=file.getAbsolutePath();
-				 * 
-				 * 
-				 * } if (file==null) { break; } System.out.println(path.toString());
-				 * 
-				 * } while(!(!path.toString().contains(".jpeg")
-				 * ||!path.toString().contains(".jpg")|| !path.toString().contains(".png")));
-				 * if(file!=null) { File newfile= new File("data/"+file.getName()); try {
-				 * newfile.createNewFile(); } catch (IOException e1) { // TODO Auto-generated
-				 * catch block e1.printStackTrace(); }
-				 * System.out.println(newfile.getAbsolutePath()); FileOutputStream fos=null; try
-				 * { fos = new FileOutputStream(newfile); } catch (FileNotFoundException e1) {
-				 * // TODO Auto-generated catch block e1.printStackTrace(); } try {
-				 * Files.copy(file.toPath(),fos); } catch (IOException e1) { // TODO
-				 * Auto-generated catch block e1.printStackTrace(); } try {
-				 * path=newfile.getCanonicalPath(); } catch (IOException e1) { // TODO
-				 * Auto-generated catch block e1.printStackTrace(); } } }); if (path!=null) {
-				 * path="file:"+path; Image imgprofile=imgprofile= new Image(path); } //netpay
-				 * setup Label lblnetpay= new Label("What is your net pay?");
-				 * lblnetpay.setFont(font); lblnetpay.setLayoutX(20); lblnetpay.setLayoutY(220);
-				 * TextField txtnetpay= new TextField(); txtnetpay.setText("Amount");
-				 * txtnetpay.setOnMouseClicked(e-> { txtnetpay.clear();
-				 * 
-				 * }); txtnetpay.setLayoutX(280); txtnetpay.setLayoutY(220);
-				 */
+				
+				  Label lblname= new Label("Please enter your name:"); 
+				  Design.Layout(lblname, Design.GetX(20), Design.GetY(15), roothome);
+				  TextField txtname= new TextField("Name here");
+				  txtname.setLayoutX(280); 
+				  txtname.setLayoutY(150); //clearing
+				  Design.Layout(txtname, Design.GetX(35), Design.GetY(15), roothome);
+				  txtname.setOnMouseClicked(e-> { 
+					  txtname.clear();
+				  }); 
+				  //profile picture setup 
+				  Label lblprofilepic= new
+				  Label("Set Profile picture"); 
+				  lblprofilepic.setFont(Design.H2Font());
+				  Design.Layout(lblprofilepic, Design.GetX(20), Design.GetY(20), roothome);
+				  
+				  Button btnselect= new Button("Set"); 
+				  btnselect.setFont(Design.ButtonFont());
+				  Design.Layout(btnselect, Design.GetX(35), Design.GetY(20), roothome);
+				  
+				  
+				  //Btnselect processing
+				  btnselect.setOnAction(e->
+				  { File file; 
+				  do 
+				  { FileChooser fc= new FileChooser();
+				  fc.setTitle("Choose Profile Picture"); 
+				  fc.setInitialDirectory(new File("C:")); 
+				  file= fc.showOpenDialog(ps);
+				  if (file!=null) {
+				  path=file.getAbsolutePath();
+				  } 
+				  if (file==null) 
+				  { 
+					  break;
+				  } 
+				  System.out.println(path.toString());
+				  } while(!(!path.toString().contains(".jpeg") ||!path.toString().contains(".jpg")|| !path.toString().contains(".png")));
+				  if(file!=null) 
+				  { File newfile= new File("data/"+file.getName()); 
+				  try {
+				  newfile.createNewFile(); 
+				  } 
+				  catch (IOException e1) 
+				  { // TODO Auto-generated
+				  e1.printStackTrace(); 
+				  }
+				  
+				  System.out.println(newfile.getAbsolutePath()); 
+				  FileOutputStream fos=null; 
+				  try
+				  { 
+					  fos = new FileOutputStream(newfile); 
+				  }
+				  catch (FileNotFoundException e1) 
+				  {
+				  // TODO Auto-generated catch block 
+					  e1.printStackTrace(); 
+				  } 
+				  
+				  try {
+				  Files.copy(file.toPath(),fos); 
+				  } 
+				  catch (IOException e1) { // TODO Auto-generated catch block 
+					  e1.printStackTrace(); } 
+				  try {
+				  path=newfile.getCanonicalPath();} 
+				  catch (IOException e1) { // TODO Auto-generated catch block 
+					  e1.printStackTrace(); } } });
+				  
+				  
+				  
+				  if (path!=null) {
+					  path="file:"+path; 
+					  Image imgprofile=imgprofile= new Image(path);
+				  }
+				  
+				  //netpay setup
+	              Label lblnetpay= new Label("Monthly budget \n reset day:");
+	              lblnetpay.setFont(Design.H2Font()); 
+				  Design.Layout(lblnetpay,Design.GetX(20), Design.GetY(25),roothome);
+				  TextField txtresetday= new TextField(); 
+				  txtresetday.setText("Amount");
+				  txtresetday.setOnMouseClicked(e-> { 
+					  txtresetday.clear();
+				  }); 
+				  Design.Layout(txtresetday, Design.GetX(35), Design.GetY(26), roothome);
+				  //making sure number in reset day textbox is in range
+				  txtresetday.textProperty().addListener((observable, oldValue, newValue) -> {
+			            // Validate the new input
+			            if (!newValue.isEmpty()) {
+			                try {
+			                    int value = Integer.parseInt(newValue); // Try parsing the number
+			                    // If the value is within the desired range, leave it
+			                    if (value < 0 || value > 31) {
+			                    	txtresetday.setStyle("-fx-border-color: red;"); // Red border for invalid input
+			                    } else {
+			                    	txtresetday.setStyle(""); // Clear the border if valid
+			                    }
+			                } catch (NumberFormatException e) {
+			                    // If it's not a number, show a red border
+			                	txtresetday.setStyle("-fx-border-color: red;");
+			                }
+			            } else {
+			            	txtresetday.setStyle(""); // Reset the border when the field is empty
+			            }
+			        });
+				 
 	         
 	         
 			 //fonts and styling of buttons
@@ -337,41 +405,50 @@ public class NewUser extends Main implements Navigation {
 	         
 	         
 	         //savings plan setup
-				/*
-				 * Label lblsavings= new Label("Savings Plan"); lblsavings.setFont(font);
-				 * lblsavings.setLayoutX(20); lblsavings.setLayoutY(490); TextField txtsavings=
-				 * new TextField(); txtsavings.setText("Name of Savings Plan");
-				 * txtsavings.setOnMouseClicked(e-> { txtsavings.clear();
-				 * 
-				 * }); txtsavings.setLayoutX(20); txtsavings.setLayoutY(520); TextField
-				 * txtsavingstarget= new TextField();
-				 * txtsavingstarget.setText("Savings Target");
-				 * txtsavingstarget.setOnMouseClicked(e-> { txtsavingstarget.clear();
-				 * 
-				 * }); txtsavingstarget.setLayoutX(20); txtsavingstarget.setLayoutY(550);
-				 * //savings button btnsavings.setLayoutX(20); btnsavings.setLayoutY(590);
-				 * btnsavings.setStyle("-fx-background-radius: 15px;"); font=
-				 * Font.font("Comic Sans Ms",FontWeight.BOLD,25);  
-				 * btnsavings.setOnAction(e->
-				 * { Pattern netpaypat= Pattern.compile("\\d*[.,]?\\d{0,2}"); Matcher
-				 * netpaymatcher=netpaypat.matcher((CharSequence) txtsavingstarget.getText());
-				 * if(netpaymatcher.matches() && txtsavings.getText()!=null) { double dblamount=
-				 * Double.parseDouble(txtsavingstarget.getText()); try { Statement stm=
-				 * Main.con.createStatement(); String
-				 * strquery="Insert Into savings (Name,target) Values ('"+txtsavings.getText()+
-				 * "','"+dblamount+"')"; stm.execute(strquery); stm.close(); } catch
-				 * (SQLException e1) { // TODO Auto-generated catch block e1.printStackTrace();
-				 * }
-				 * 
-				 * } else { Label lblfail= new Label("Invalid savings details");
-				 * lblfail.setStyle(" -fx-background-color: white;");
-				 * failmsg.getContent().add(lblfail); failmsg.show(Main.ps);
-				 * 
-				 * 
-				 * }
-				 * 
-				 * });
-				 */
+				
+				  Label lblsavings= new Label("Savings Plan"); 
+				  lblsavings.setFont(Design.H2Font());
+				  lblsavings.setLayoutX(20); 
+				  lblsavings.setLayoutY(490); 
+				  TextField txtsavings= new TextField(); 
+				  txtsavings.setText("Name of Savings Plan");
+				  txtsavings.setOnMouseClicked(e-> { 
+					  txtsavings.clear();
+				  
+				  });
+				  txtsavings.setLayoutX(20); 
+				  txtsavings.setLayoutY(520); 
+				  TextField txtsavingstarget= new TextField();
+				  txtsavingstarget.setText("Savings Target");
+				  txtsavingstarget.setOnMouseClicked(e-> { 
+					  txtsavingstarget.clear();
+				  
+				  }); 
+				  txtsavingstarget.setLayoutX(20); 
+				  txtsavingstarget.setLayoutY(550);
+				  //savings button 
+				  btnsavings.setLayoutX(20); 
+				  btnsavings.setLayoutY(590); 
+				  btnsavings.setOnAction(e->
+				  { Pattern netpaypat= Pattern.compile("\\d*[.,]?\\d{0,2}"); 
+				  Matcher netpaymatcher=netpaypat.matcher((CharSequence) txtsavingstarget.getText());
+				  if(netpaymatcher.matches() && txtsavings.getText()!=null) 
+				  { double dblamount= Double.parseDouble(txtsavingstarget.getText()); 
+				  try { Statement stm=Main.con.createStatement(); 
+				  String strquery="Insert Into savings (Name,target) Values ('"+txtsavings.getText()+"','"+dblamount+"')"; stm.execute(strquery); stm.close(); } 
+				  catch
+				  (SQLException e1) { // TODO Auto-generated catch block e1.printStackTrace();
+				  }
+				  
+				  } 
+				  else 
+				  { Label lblfail= new Label("Invalid savings details");
+				  lblfail.setStyle(" -fx-background-color: white;");
+				  failmsg.getContent().add(lblfail); failmsg.show(Main.ps);
+				  }
+				  
+				  });
+				 
 	         
 	         
 	         //btndone processing
@@ -390,25 +467,18 @@ public class NewUser extends Main implements Navigation {
 			 //
 			 //BtnaddDetails Code
 			 //
-				/*
-				 * btnaddDetails.setOnAction(e-> { Pattern netpaypat=
-				 * Pattern.compile("\\d*[.,]?\\d{0,2}"); Matcher
-				 * netpaymatcher=netpaypat.matcher((CharSequence) txtnetpay.getText());
-				 * if(netpaymatcher.matches()) { double intnetpay=
-				 * Double.parseDouble(txtnetpay.getText()); try(PrintWriter txtout= new
-				 * PrintWriter(new File("docs/Plan.txt"))) { txtout.println(txtname.getText());
-				 * txtout.println(path); txtout.println(intnetpay); }catch(FileNotFoundException
-				 * ex) { ex.printStackTrace(); } //Adding Allowance amount to db try {
-				 * 
-				 * Statement stm= Main.con.createStatement(); String tdate=
-				 * Calendar.YEAR+"-"+Calendar.MONTH+"-"+Calendar.DATE; stm.
-				 * execute("Insert Into transaction (itemName,amount,date,amountleft) Values ('Income','"
-				 * +intnetpay+"','"+java.time.LocalDate.now()+"','"+intnetpay+"')");
-				 * stm.close(); } catch (SQLException e1) { // TODO Auto-generated catch block
-				 * e1.printStackTrace(); } btnaddDetails.setDisable(true); }
-				 * 
-				 * });
-				 */
+				
+				  btnaddDetails.setOnAction(e-> { 
+					  try(PrintWriter txtout= new PrintWriter(new File("docs/Plan.txt"))) 
+					  { txtout.println(txtname.getText());
+				        txtout.println(path); 
+				        txtout.println(txtresetday.getText()); }
+					  catch(FileNotFoundException ex)
+					  { ex.printStackTrace(); }
+					  btnaddDetails.setDisable(true);
+				  
+				  });
+				 
 			 
 	         
 	    }

@@ -1,9 +1,11 @@
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.Scanner;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -27,7 +29,7 @@ import javafx.scene.shape.Circle;
 public class Homepage extends Canvas implements Navigation, Design{
 	
 	Scene scene;
-	String name,path,strnetpay;
+	String name,path,resetday;
 	double dblnetpay;
 	public Button btntransact;
 	public Button btnprevtransact;
@@ -55,18 +57,23 @@ public class Homepage extends Canvas implements Navigation, Design{
     	//
     	//Getting info from textfile
     	//
-		/*
-		 * try(Scanner txtin = new Scanner(txtplan)) { while(txtin.hasNext()) { name=
-		 * txtin.nextLine(); path=txtin.nextLine(); strnetpay=txtin.nextLine();
-		 * 
-		 * } }catch(FileNotFoundException ex) { ex.printStackTrace(); }
-		 */
+		
+		  try(Scanner txtin = new Scanner(txtplan)) 
+		  { while(txtin.hasNext()) 
+		  { name=txtin.nextLine(); 
+		  path=txtin.nextLine(); 
+		  resetday=txtin.nextLine();
+		  
+		  } 
+		  }
+		  catch(FileNotFoundException ex) 
+		  { ex.printStackTrace(); }
+		 
     	 //rootnode
 		 Group roothome= new Group();
 		 
 		 
          //displaying name label
-		 name="Q";
          lblname= new Label("Welcome"+'\n'+name);
          lblname.setFont(Design.H2Font());
          Design.Layout(lblname, 20, 160, roothome);
@@ -78,7 +85,7 @@ public class Homepage extends Canvas implements Navigation, Design{
          Design.Layout(lbloverview, Design.GetX(12), Design.GetY(4), roothome);
          
          //Handling image
-         Image image = new Image("file:data/App Profile pic.jpeg");
+         Image image = new Image("file:"+path);
          ImageView imageView = new ImageView(image);
          // Set size and position
          imageView.setFitWidth(140);
