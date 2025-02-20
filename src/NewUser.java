@@ -162,7 +162,7 @@ public class NewUser extends Main implements Navigation,Design {
 	              lblnetpay.setFont(Design.H2Font()); 
 				  Design.Layout(lblnetpay,Design.GetX(20), Design.GetY(25),roothome);
 				  TextField txtresetday= new TextField(); 
-				  txtresetday.setText("Amount");
+				  txtresetday.setText("enter day");
 				  txtresetday.setOnMouseClicked(e-> { 
 					  txtresetday.clear();
 				  }); 
@@ -175,13 +175,13 @@ public class NewUser extends Main implements Navigation,Design {
 			                    int value = Integer.parseInt(newValue); // Try parsing the number
 			                    // If the value is within the desired range, leave it
 			                    if (value < 0 || value > 31) {
-			                    	txtresetday.setStyle("-fx-border-color: red;"); // Red border for invalid input
+			                    	txtresetday.setStyle("-fx-border-color: red;-fx-border-width:3px;"); // Red border for invalid input
 			                    } else {
 			                    	txtresetday.setStyle(""); // Clear the border if valid
 			                    }
 			                } catch (NumberFormatException e) {
 			                    // If it's not a number, show a red border
-			                	txtresetday.setStyle("-fx-border-color: red;");
+			                	txtresetday.setStyle("-fx-border-color: red;-fx-border-width:3px;");
 			                }
 			            } else {
 			            	txtresetday.setStyle(""); // Reset the border when the field is empty
@@ -202,20 +202,18 @@ public class NewUser extends Main implements Navigation,Design {
 			 
 			 
 			 //positions of buttons
-			 Design.Layout(btnaddexpense, 20, 420, roothome);
-			 Design.Layout(btnaddincome, 280, 420, roothome);
-			 Design.Layout(btnaddDetails, 180, 250, roothome);
-			 btnaddDetails.setStyle("-fx-background-radius: 15px;");
+			 Design.Layout(btnaddDetails, Design.GetX(32), Design.GetY(40), roothome);
+			 Design.Layout(btnaddexpense, Design.GetX(20), Design.GetY(90), roothome);
+			 Design.Layout(btnaddincome, Design.GetX(50), Design.GetY(90), roothome);
+			 Design.Layout(btnsavings, Design.GetX(80), Design.GetY(90), roothome);
 			 
 			 
 			 //expenses setup
 			 Label lblexpense= new Label("Add an expense");
-			 Design.Layout(lblexpense, 20, 300, roothome);
+			 Design.Layout(lblexpense, Design.GetX(20), Design.GetY(53), roothome);
 			 Label lblexpmsg= new Label();
 			 lblexpmsg.setStyle(" -fx-background-color: white;");
-			 lblexpmsg.setLayoutX(20);
-			 lblexpmsg.setLayoutY(460);
-			 Design.Layout(lblexpmsg, 20, 460, roothome);
+			 Design.Layout(lblexpmsg, Design.GetX(20), Design.GetY(55), roothome);
 			 
 			 
 			 //combobox for expenses
@@ -260,8 +258,8 @@ public class NewUser extends Main implements Navigation,Design {
 			 
 			 
 			 //Adding labels to stage
-			 Design.Layout(txtexpense, 20, 330, roothome);
-			 Design.Layout(expcombo, 20, 360, roothome);
+			 Design.Layout(txtexpense, Design.GetX(20), Design.GetY(58), roothome);
+			 Design.Layout(expcombo, Design.GetX(20), Design.GetY(61), roothome);
 			 
 			 //combobox clearing
 			 expcombo.setOnMouseClicked(e->
