@@ -202,10 +202,15 @@ public class NewUser extends Main implements Navigation,Design {
 			 
 			 
 			 //positions of buttons
-			 Design.Layout(btnaddDetails, Design.GetX(32), Design.GetY(40), roothome);
-			 Design.Layout(btnaddexpense, Design.GetX(20), Design.GetY(90), roothome);
-			 Design.Layout(btnaddincome, Design.GetX(50), Design.GetY(90), roothome);
-			 Design.Layout(btnsavings, Design.GetX(80), Design.GetY(90), roothome);
+			 Design.Layout(btnaddDetails, Design.GetX(32), Design.GetY(32), roothome);
+			 Design.Layout(btnaddexpense, Design.GetX(20), Design.GetY(75), roothome);
+			 Design.Layout(btnaddincome, Design.GetX(38), Design.GetY(75), roothome);
+			 Design.Layout(btnsavings, Design.GetX(56), Design.GetY(90), roothome);
+			 
+			 //Bugdet layout message
+			 Label lbllayout= new Label("Budget Layout");
+			 lbllayout.setFont(Design.HeadingFont());
+			 Design.Layout(lbllayout, Design.GetX(38), Design.GetY(40), roothome);
 			 
 			 
 			 //expenses setup
@@ -258,8 +263,8 @@ public class NewUser extends Main implements Navigation,Design {
 			 
 			 
 			 //Adding labels to stage
-			 Design.Layout(txtexpense, Design.GetX(20), Design.GetY(58), roothome);
-			 Design.Layout(expcombo, Design.GetX(20), Design.GetY(61), roothome);
+			 Design.Layout(txtexpense, Design.GetX(20), Design.GetY(60), roothome);
+			 Design.Layout(expcombo, Design.GetX(20), Design.GetY(65), roothome);
 			 
 			 //combobox clearing
 			 expcombo.setOnMouseClicked(e->
@@ -277,7 +282,7 @@ public class NewUser extends Main implements Navigation,Design {
 				 lblexpmsg.setVisible(false);
 				 
 			 });
-	         Design.Layout(txtexpenseamount, 20, 390, roothome);
+	         Design.Layout(txtexpenseamount, Design.GetX(20), Design.GetY(70), roothome);
 	         
 	         
 	         //Adding expense processing
@@ -313,10 +318,10 @@ public class NewUser extends Main implements Navigation,Design {
 	         
 	         //Incomes setup
 			 Label lblincome= new Label("Add an Income");
-			 Design.Layout(lblincome, 280, 300, roothome);
+			 Design.Layout(lblincome, Design.GetX(38), Design.GetY(53), roothome);
 			 Label lblincmsg= new Label();
 			 lblincmsg.setStyle(" -fx-background-color: white;");
-			 Design.Layout(lblincmsg, 280, 460, roothome);
+			 Design.Layout(lblincmsg, Design.GetX(38), Design.GetY(74), roothome);
 			 
 			 
 			 //combobox for expenses
@@ -356,8 +361,8 @@ public class NewUser extends Main implements Navigation,Design {
 					 incCombo.setItems(filtered);
 				 }
 			 });
-			 Design.Layout(txtinc, 280, 330, roothome);
-			 Design.Layout(incCombo, 280, 360, roothome);
+			 Design.Layout(txtinc, Design.GetX(38), Design.GetY(60), roothome);
+			 Design.Layout(incCombo, Design.GetX(38), Design.GetY(65), roothome);
 			 
 			 
 			 TextField txtincAmount= new TextField();
@@ -368,7 +373,7 @@ public class NewUser extends Main implements Navigation,Design {
 				 lblincmsg.setVisible(false);
 				 
 			 });
-	         Design.Layout(txtincAmount, 280, 390, roothome);
+	         Design.Layout(txtincAmount, Design.GetX(38), Design.GetY(70), roothome);
 	         
 	         
 	         //Adding income processing
@@ -406,27 +411,56 @@ public class NewUser extends Main implements Navigation,Design {
 				
 				  Label lblsavings= new Label("Savings Plan"); 
 				  lblsavings.setFont(Design.H2Font());
-				  lblsavings.setLayoutX(20); 
-				  lblsavings.setLayoutY(490); 
+				  Design.Layout(lblsavings, Design.GetX(56), Design.GetX(53), roothome);
 				  TextField txtsavings= new TextField(); 
 				  txtsavings.setText("Name of Savings Plan");
 				  txtsavings.setOnMouseClicked(e-> { 
 					  txtsavings.clear();
 				  
 				  });
-				  txtsavings.setLayoutX(20); 
-				  txtsavings.setLayoutY(520); 
-				  TextField txtsavingstarget= new TextField();
+                  Design.Layout(txtsavings, Design.GetX(56), Design.GetY(60), roothome);
+				  
+                //combobox for savings
+     			 ObservableList<String> savings=FXCollections.observableArrayList("Emergency Fund","Short-Term Savings","Long-term Savings","Education Savings","Health Savings","Debt Repayment Savings","Leisure Savings","Fun Savings");
+     			 ComboBox<String> savingsCombo= new ComboBox<>(savings);
+     			 savingsCombo.setEditable(true);
+     			 savingsCombo.setPromptText("Savings Category");
+     			 TextField txtsavingscombo= savingsCombo.getEditor();
+     			 txtsavingscombo.setOnMouseClicked(e->
+     			 {
+     				 txtsavingscombo.clear();
+     				 lblincmsg.setVisible(false);
+     				 
+     			 });
+     			 
+     			 
+     			 //filteredList
+     			 txtsavingscombo.textProperty().addListener((observable,oldValue,newValue)->
+     			 {
+     				 //filter items based on user input
+     				 if (newValue.isEmpty() || newValue.equals("Savings Name")) {
+     					 savingsCombo.setItems(savings);
+     				 }else
+     				 {
+     					 ObservableList<String> filtered= FXCollections.observableArrayList();
+     					 for (String item: savings) {
+     						 if (item.toLowerCase().contains(newValue.toLowerCase())) {
+     							 filtered.add(item);
+     						 }
+     					 }
+     					 savingsCombo.setItems(filtered);
+     				 }
+     			 });
+     			 Design.Layout(savingsCombo, Design.GetX(56), Design.GetY(65), roothome);
+                  TextField txtsavingstarget= new TextField();
 				  txtsavingstarget.setText("Savings Target");
 				  txtsavingstarget.setOnMouseClicked(e-> { 
 					  txtsavingstarget.clear();
 				  
 				  }); 
-				  txtsavingstarget.setLayoutX(20); 
-				  txtsavingstarget.setLayoutY(550);
+				  Design.Layout(txtsavingstarget, Design.GetX(56), Design.GetY(70), roothome);
 				  //savings button 
-				  btnsavings.setLayoutX(20); 
-				  btnsavings.setLayoutY(590); 
+
 				  btnsavings.setOnAction(e->
 				  { Pattern netpaypat= Pattern.compile("\\d*[.,]?\\d{0,2}"); 
 				  Matcher netpaymatcher=netpaypat.matcher((CharSequence) txtsavingstarget.getText());
