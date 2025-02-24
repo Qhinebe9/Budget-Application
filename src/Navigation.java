@@ -18,4 +18,9 @@ public interface Navigation {
 		Graphs graphs= new Graphs();
 		Main.ps.setScene(graphs.getscene());
 	}
+
+	static void toModPage() {
+		Modifications modifications= new Modifications();
+		Main.ps.setScene(modifications.getscene());
+	}
 }

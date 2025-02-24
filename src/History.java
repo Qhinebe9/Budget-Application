@@ -104,7 +104,7 @@ public class History extends Canvas implements Navigation, Design {
 	        try { 
 			      Statement stm= Main.con.createStatement(); 
 				   rs=stm.executeQuery("SELECT  date AS transaction_date, amount AS transaction_amount, name AS item_name,\r\n"
-				  		                      + "category AS item_category, type AS item_type FROM transaction JOIN items i\r\n"
+				  		                      + "category AS item_category, itemtype AS item_type FROM transaction JOIN items i\r\n"
 				  		                      + "ON transaction.itemid = i.iditems ORDER BY transaction_date DESC;"); 
 				  VBox transactionList = new VBox(10);
 			      transactionList.setPadding(new Insets(10));
@@ -171,13 +171,13 @@ public class History extends Canvas implements Navigation, Design {
 						if (searchvalue.isEmpty())
 						{
 							rs=stm.executeQuery("SELECT  date AS transaction_date, amount AS transaction_amount, name AS item_name,\r\n"
-		  		                      + "category AS item_category, type AS item_type FROM transaction JOIN items i\r\n"
+		  		                      + "category AS item_category, itemtype AS item_type FROM transaction JOIN items i\r\n"
 		  		                      + "ON transaction.itemid = i.iditems ORDER BY transaction_date DESC;"); 
 							
 						}else {
 						 rs=stm.executeQuery("SELECT  date AS transaction_date, amount AS transaction_amount, name AS item_name,\r\n"
-							  		                      + "category AS item_category, type AS item_type FROM transaction JOIN items i\r\n"
-							  		                      + "ON transaction.itemid = i.iditems Where name='"+searchvalue+"' OR  category='"+searchvalue+"' OR type='"+searchvalue+"' ORDER BY transaction_date DESC;");
+							  		                      + "category AS item_category, itemtype AS item_type FROM transaction JOIN items i\r\n"
+							  		                      + "ON transaction.itemid = i.iditems Where name='"+searchvalue+"' OR  category='"+searchvalue+"' OR itemtype='"+searchvalue+"' ORDER BY transaction_date DESC;");
 						}
 						if (!rs.next()) {
 							HBox box=createTransactionCard("", "", "No transactions found", 00);

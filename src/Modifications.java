@@ -7,11 +7,14 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.Scanner;
 
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -26,21 +29,21 @@ import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
-public class Homepage extends Canvas implements Navigation, Design{
+public class Modifications extends Canvas implements Navigation, Design{
 	
 	Scene scene;
 	String name,path,resetday;
 	double dblnetpay;
 	public Button btntransact;
 	public Button btnprevtransact;
-	public Button btnmore;
+	public Button btnback;
 	Label lblname;
 	ImageView imgprofileview;
 	ResultSet rs;
 	Statement stm;
 	Image imgprofile;
 	public File txtplan= new File("docs/Plan.txt");
-	public Homepage()
+	public Modifications()
 	{
 		try {
 			stm=  Main.con.createStatement();
@@ -53,6 +56,201 @@ public class Homepage extends Canvas implements Navigation, Design{
 	}
     @SuppressWarnings("resource")
 	void createPage()
+	{
+    	//
+        //font
+        //
+    	//rootnode
+		 Group roothome= new Group();
+		 
+		 
+		 //back button
+		 btnback= new Button("Back");
+		 btnback.setPrefSize(100, 30);
+		 Design.Layout(btnback, 20, 20, roothome);
+		 btnback.setFont(Design.ButtonFont());
+		 btnback.setStyle(Design.ButtonStyle());
+		 
+		 
+		// Header Section
+	        Label title = new Label("Edit Budget");
+	        title.setFont(Design.HeadingFont());
+	        Design.Layout(title, Design.GetX(50), Design.GetY(3), roothome);
+	        
+	        
+	        //personal details heading
+	        Label lbldetails = new Label("Personal details");
+	        lbldetails.setFont(Design.HeadingFont());
+	        Design.Layout(lbldetails, Design.GetX(25), Design.GetY(20), roothome);
+	        
+	        
+	        //personal details set up
+	        try(Scanner txtin = new Scanner(txtplan)) 
+			  { while(txtin.hasNext()) 
+			  { name=txtin.nextLine(); 
+			  path=txtin.nextLine(); 
+			  resetday=txtin.nextLine();
+			  
+			  } 
+			  }
+			  catch(FileNotFoundException ex) 
+			  { ex.printStackTrace(); }
+	        TextField txtname = new TextField();
+	        txtname.setPromptText(name);
+	        txtname.setPrefWidth(200);
+	        Design.Layout(txtname, Design.GetX(20), Design.GetY(15), roothome);
+	        
+	        TextField txtpath = new TextField();
+	        txtname.setPromptText(path.su);
+	        txtname.setPrefWidth(200);
+	        Design.Layout(txtname, Design.GetX(20), Design.GetY(15), roothome);
+	        Button filterButton = new Button("Filter");
+	        filterButton.setFont(Design.ButtonFont());
+	        filterButton.setStyle(Design.ButtonStyle());
+	        Design.Layout(filterButton,405,55,roothome);
+	      //table
+	        TableView<ObservableList<Object>> table= new TableView<>();
+	        TableColumn<ObservableList<Object>, String> datecol=new TableColumn<>("Date");
+	        datecol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(0)));
+	        TableColumn<ObservableList<Object>, String> namecol=new TableColumn<>("Name");
+	        namecol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(1)));
+	        TableColumn<ObservableList<Object>, String> categorycol=new TableColumn<>("Category");
+	        categorycol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(2)));
+	        TableColumn<ObservableList<Object>, String> typecol=new TableColumn<>("Type");
+	        typecol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(3)));
+	        TableColumn<ObservableList<Object>, Double> amountcol=new TableColumn<>("Amount");
+	        amountcol.setCellValueFactory(cellData -> new SimpleDoubleProperty((Double) cellData.getValue().get(4)).asObject());
+	        Design.Layout(table, 700, 140, roothome);
+	     //ObservableList for entries
+	        ObservableList<ObservableList<Object>> data= FXCollections.observableArrayList();
+	        
+	     // Transaction List
+	        try { 
+			      Statement stm= Main.con.createStatement(); 
+				   rs=stm.executeQuery("SELECT  date AS transaction_date, amount AS transaction_amount, name AS item_name,\r\n"
+				  		                      + "category AS item_category, itemtype AS item_type FROM transaction JOIN items i\r\n"
+				  		                      + "ON transaction.itemid = i.iditems ORDER BY transaction_date DESC;"); 
+				  VBox transactionList = new VBox(10);
+			      transactionList.setPadding(new Insets(10));
+			      transactionList.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cccccc; -fx-border-radius: 10px; -fx-background-radius: 10px;");
+				  while (rs.next()) 
+				  {  
+					  Date date=rs.getDate("transaction_date");
+					  String strdate=date.toString();
+					  double amount=rs.getDouble("transaction_amount");
+					  String name=rs.getString("item_name");
+					  String category=rs.getString("item_category");
+					  String type=rs.getString("item_type");
+					  HBox box=createTransactionCard(strdate, type, name, amount);
+					  transactionList.getChildren().add(box);
+					  //adding to table
+					  data.add(FXCollections.observableArrayList(strdate,name,category,type,amount));
+					  table.setItems(data);
+				  }
+				  
+				  table.getColumns().add(datecol);
+			      table.getColumns().add(namecol);
+			      table.getColumns().add(categorycol);
+			      table.getColumns().add(typecol);
+			      table.getColumns().add(amountcol);
+				  
+				  ScrollPane scrollpane=new ScrollPane(transactionList);
+				  scrollpane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+				  Design.Layout(scrollpane, 20, 140, roothome);
+				  scrollpane.setMaxHeight(500);
+				  scrollpane.setMinWidth(400);
+				  scrollpane.setFitToWidth(true);
+			      scrollpane.setStyle(" border-radius:5px;");
+			      rs=stm.executeQuery("SELECT  sum(amount) AS total_income FROM transaction where amount>0"); 
+			     // Summary Section
+			      HBox summary = new HBox(20);
+			      summary.setAlignment(Pos.CENTER);
+			      Label totalIncome = null;
+			        if (rs.next()) {
+			        	double amount=rs.getDouble("total_income");
+			        	totalIncome= new Label("Total Income: "+amount);
+			        	totalIncome.setFont(Design.H2Font());
+				        totalIncome.setTextFill(Color.GREEN);
+			        	
+			        }
+			        rs=stm.executeQuery("SELECT  sum(amount) AS total_expenses FROM transaction where amount<0");
+			        Label totalExpenses = null;
+				        if (rs.next()) {
+				        	double amount=rs.getDouble("total_expenses");
+				        	totalExpenses= new Label("Total Expenses: "+amount);
+					        totalExpenses.setFont(Design.H2Font());
+					        totalExpenses.setTextFill(Color.RED);
+				        	
+				        }
+			        summary.getChildren().addAll(totalIncome, totalExpenses);
+			        Design.Layout(summary, 20, 90, roothome);//add scrollpane
+			        //
+			        //Filter button processing
+			        //
+			        filterButton.setOnAction(e->{
+			        	String searchvalue=searchBar.getText();
+			        	System.out.println(searchvalue);
+			        	transactionList.getChildren().clear();
+					try {
+						if (searchvalue.isEmpty())
+						{
+							rs=stm.executeQuery("SELECT  date AS transaction_date, amount AS transaction_amount, name AS item_name,\r\n"
+		  		                      + "category AS item_category, itemtype AS item_type FROM transaction JOIN items i\r\n"
+		  		                      + "ON transaction.itemid = i.iditems ORDER BY transaction_date DESC;"); 
+							
+						}else {
+						 rs=stm.executeQuery("SELECT  date AS transaction_date, amount AS transaction_amount, name AS item_name,\r\n"
+							  		                      + "category AS item_category, itemtype AS item_type FROM transaction JOIN items i\r\n"
+							  		                      + "ON transaction.itemid = i.iditems Where name='"+searchvalue+"' OR  category='"+searchvalue+"' OR itemtype='"+searchvalue+"' ORDER BY transaction_date DESC;");
+						}
+						if (!rs.next()) {
+							HBox box=createTransactionCard("", "", "No transactions found", 00);
+							  box.setLayoutY(300);
+							  transactionList.getChildren().add(box);
+						}
+						while (rs.next()) 
+						  {  
+							  Date date=rs.getDate("transaction_date");
+							  String strdate=date.toString();
+							  double amount=rs.getDouble("transaction_amount");
+							  String name=rs.getString("item_name");
+							  String category=rs.getString("item_category");
+							  String type=rs.getString("item_type");
+							  HBox box=createTransactionCard(strdate, type, name, amount);
+							  box.setLayoutY(300);
+							  transactionList.getChildren().add(box);
+							  
+						  }
+					} catch (SQLException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} 
+						  
+			        	
+			        });
+			
+				  }
+				  
+				  catch (SQLException e) 
+				  { // TODO Auto-generated catch block
+				  e.printStackTrace();
+				  System.out.println("flop with try");}
+	        
+	      //btnback processing
+	         btnback.setOnAction(e->{
+	        	 Navigation.toHomepage();
+	         });
+	         
+	         
+	         
+	        
+
+		 scene= new Scene(roothome);
+		 //colour of the scene
+		 scene.setFill(new LinearGradient(0, 0, 1, 1, true,CycleMethod.NO_CYCLE,new Stop(0, Color.web("#ff7f50")),new Stop(1, Color.web("#6a5acd"))));
+		 //linear-gradient(to bottom right, #ff7f50, #6a5acd)
+	}
+	
 	{
     	//
     	//Getting info from textfile

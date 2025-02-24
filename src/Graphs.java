@@ -110,7 +110,7 @@ public class Graphs extends Canvas implements Navigation, Design {
 					+ "        MAX(items.setAmount) AS totalSetAmount,  -- Ensure setAmount is added once per itemid\r\n"
 					+ "        items.category\r\n" + "     FROM transaction\r\n"
 					+ "     JOIN items ON transaction.itemid = items.iditems\r\n"
-					+ "     WHERE items.type = 'expense'\r\n" + "     GROUP BY \r\n"
+					+ "     WHERE items.itemtype = 'expense'\r\n" + "     GROUP BY \r\n"
 					+ "        transaction.itemid, \r\n" + "        items.category) AS subquery\r\n" + "GROUP BY \r\n"
 					+ "    subquery.category;\r\n" + "");
 			// Bar chart

@@ -7,6 +7,8 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.regex.Matcher;
@@ -107,7 +109,6 @@ public class NewUser extends Main implements Navigation,Design {
 				  do 
 				  { FileChooser fc= new FileChooser();
 				  fc.setTitle("Choose Profile Picture"); 
-				  fc.setInitialDirectory(new File("C:")); 
 				  file= fc.showOpenDialog(ps);
 				  if (file!=null) {
 				  path=file.getAbsolutePath();
@@ -119,7 +120,13 @@ public class NewUser extends Main implements Navigation,Design {
 				  System.out.println(path.toString());
 				  } while(!(!path.toString().contains(".jpeg") ||!path.toString().contains(".jpg")|| !path.toString().contains(".png")));
 				  if(file!=null) 
-				  { File newfile= new File("data/"+file.getName()); 
+				  { 
+					  String extension=null;
+					  int dotIndex = file.getName().lastIndexOf('.');
+			        if (dotIndex > 0 && dotIndex < file.getName().length() - 1) {
+			            extension = file.getName().substring(dotIndex + 1);
+			        }
+					  File newfile= new File("data/pp."+extension); 
 				  try {
 				  newfile.createNewFile(); 
 				  } 
@@ -295,7 +302,7 @@ public class NewUser extends Main implements Navigation,Design {
 					 double dblamount= Double.parseDouble(txtexpenseamount.getText());
 					 try {
 						 Statement stm= Main.con.createStatement();
-							stm.execute("Insert Into items (name,setAmount, type,category, actualAmount) Values ('"+txtexpense.getText()+"','"+dblamount+"','expense','"+expcombo.getSelectionModel().getSelectedItem()+"','"+dblamount+"')");
+							stm.execute("Insert Into items (name,setAmount, itemtype,category, actualAmount) Values ('"+txtexpense.getText()+"','"+dblamount+"','expense','"+expcombo.getSelectionModel().getSelectedItem()+"','"+dblamount+"')");
 						    stm.close();
 						    lblexpmsg.setVisible(true);
 							 lblexpmsg.setText("Added Expense Successfully");
@@ -386,7 +393,7 @@ public class NewUser extends Main implements Navigation,Design {
 					 double dblamount= Double.parseDouble(txtincAmount.getText());
 					 try {
 						 Statement stm= Main.con.createStatement();
-							stm.execute("Insert Into items (name,setAmount, type,category,actualAmount) Values ('"+txtinc.getText()+"','"+dblamount+"','income','"+incCombo.getSelectionModel().getSelectedItem()+"','0')");
+							stm.execute("Insert Into items (name,setAmount, itemtype,category,actualAmount) Values ('"+txtinc.getText()+"','"+dblamount+"','income','"+incCombo.getSelectionModel().getSelectedItem()+"','0')");
 						    stm.close();
 						    lblincmsg.setVisible(true);
 							 lblincmsg.setText("Added Income Successfully");
@@ -508,6 +515,40 @@ public class NewUser extends Main implements Navigation,Design {
 					  catch(FileNotFoundException ex)
 					  { ex.printStackTrace(); }
 					  btnaddDetails.setDisable(true);
+					  //adding date of when budget should reset
+				        int currentYear = LocalDateTime.now().getYear();
+				        int currentMonth = LocalDateTime.now().getMonthValue();
+
+				        int day = Integer.parseInt(txtresetday.getText());
+				        
+				        // Create a LocalDateTime for the specified day of the current month and year, at 00:00:00
+				        LocalDateTime dateTime = LocalDateTime.of(currentYear, currentMonth, day, 0, 0);
+
+				        // Format the LocalDateTime to the desired format: yyyy-MM-dd HH:mm:ss
+				        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+				        String formattedDateTime = dateTime.format(formatter);
+				        Statement stm;
+						try {
+							stm = Main.con.createStatement();
+							stm.execute("DROP EVENT IF EXISTS reset_actual_amounts;\r\n"
+									+ "CREATE EVENT reset_actual_amounts\r\n"
+									+ "ON SCHEDULE EVERY 1 MONTH\r\n"
+									+ "STARTS '"+formattedDateTime+"'\r\n"
+									+ "DO\r\n"
+									+ "BEGIN\r\n"
+									+ "    UPDATE items\r\n"
+									+ "    SET actualAmount = setAmount\r\n"
+									+ "    WHERE itemtype = 'expense';\r\n"
+									+ "\r\n"
+									+ "    -- Reset actualAmount for 'income' type to 0.00\r\n"
+									+ "    UPDATE items\r\n"
+									+ "    SET actualAmount = 0.00\r\n"
+									+ "    WHERE itemtype = 'income';\r\n");
+						    stm.close();
+						} catch (SQLException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}	
 				  
 				  });
 				 

@@ -123,7 +123,7 @@ public class Transaction extends Canvas implements Navigation, Design {
 					  stm= Main.con.createStatement();
 					  StringTokenizer st= new StringTokenizer(cmbitems.getSelectionModel().getSelectedItem()," ");
 					  String name=st.nextToken();
-					  rs=stm.executeQuery("SELECT iditems,type,actualAmount FROM items Where name='"+name+"'");
+					  rs=stm.executeQuery("SELECT iditems,itemtype,actualAmount FROM items Where name='"+name+"'");
 					  if (rs.next())
 					  {   
 						  LocalDateTime date=LocalDateTime.now();
