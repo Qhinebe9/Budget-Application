@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -95,41 +96,109 @@ public class Modifications extends Canvas implements Navigation, Design{
 			  }
 			  catch(FileNotFoundException ex) 
 			  { ex.printStackTrace(); }
+	        Label lbldetailsexplainer= new Label("Change your details in the fields and click save");
+	        lbldetailsexplainer.setFont(Design.ButtonFont());
+	        Design.Layout(lbldetailsexplainer, Design.GetX(15), Design.GetY(10), roothome);
+	        
 	        TextField txtname = new TextField();
 	        txtname.setPromptText(name);
 	        txtname.setPrefWidth(200);
 	        Design.Layout(txtname, Design.GetX(20), Design.GetY(15), roothome);
 	        
 	        TextField txtpath = new TextField();
-	        txtname.setPromptText(path.su);
+	        txtname.setPromptText(path);
 	        txtname.setPrefWidth(200);
-	        Design.Layout(txtname, Design.GetX(20), Design.GetY(15), roothome);
-	        Button filterButton = new Button("Filter");
-	        filterButton.setFont(Design.ButtonFont());
-	        filterButton.setStyle(Design.ButtonStyle());
-	        Design.Layout(filterButton,405,55,roothome);
-	      //table
+	        Design.Layout(txtpath, Design.GetX(20), Design.GetY(25), roothome);
+	        
+	        TextField txtresetday= new TextField(resetday);
+	        txtresetday.setPrefWidth(200);
+	        Design.Layout(txtresetday, Design.GetX(20), Design.GetY(35), roothome);
+	        
+	        //Saving personal details button
+	        Button btndetails= new Button("Save");
+	        btndetails.setFont(Design.ButtonFont());
+	        btndetails.setStyle(Design.ButtonStyle());
+	        btndetails.setOnAction(e->{
+	        	PrintWriter writer = null;
+	            try {
+	                writer = new PrintWriter("docs/Plan.txt");
+	                // Clear contents
+	                writer.print("");
+	                writer.println(txtname.getText());
+	                writer.println(path); 
+	                writer.println(txtresetday.getText());
+	                
+	                // Flush to ensure writing occurs
+	                writer.flush();
+	                
+	                System.out.println("File cleared successfully");
+	                
+	            } catch (FileNotFoundException ex) {
+	                System.out.println("Error: Could not open file.");
+	                ex.printStackTrace();
+	            } finally {
+	                // Ensure the writer is closed even if an exception occurs
+	                if (writer != null) {
+	                    writer.close();
+	                }
+	            }
+	        });
+	        
+	      // expenses table
 	        TableView<ObservableList<Object>> table= new TableView<>();
-	        TableColumn<ObservableList<Object>, String> datecol=new TableColumn<>("Date");
-	        datecol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(0)));
 	        TableColumn<ObservableList<Object>, String> namecol=new TableColumn<>("Name");
 	        namecol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(1)));
 	        TableColumn<ObservableList<Object>, String> categorycol=new TableColumn<>("Category");
-	        categorycol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(2)));
-	        TableColumn<ObservableList<Object>, String> typecol=new TableColumn<>("Type");
-	        typecol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(3)));
-	        TableColumn<ObservableList<Object>, Double> amountcol=new TableColumn<>("Amount");
+	        TableColumn<ObservableList<Object>, Double> amountcol=new TableColumn<>("Budgeted Amount");
 	        amountcol.setCellValueFactory(cellData -> new SimpleDoubleProperty((Double) cellData.getValue().get(4)).asObject());
-	        Design.Layout(table, 700, 140, roothome);
-	     //ObservableList for entries
+	        Design.Layout(table, Design.GetX(20), Design.GetY(50), roothome);
+	       //ObservableList for entries
 	        ObservableList<ObservableList<Object>> data= FXCollections.observableArrayList();
 	        
 	     // Transaction List
 	        try { 
 			      Statement stm= Main.con.createStatement(); 
-				   rs=stm.executeQuery("SELECT  date AS transaction_date, amount AS transaction_amount, name AS item_name,\r\n"
-				  		                      + "category AS item_category, itemtype AS item_type FROM transaction JOIN items i\r\n"
-				  		                      + "ON transaction.itemid = i.iditems ORDER BY transaction_date DESC;"); 
+				   rs=stm.executeQuery("SELECT  name , setAmount\r\n"
+				  		                      + ",category AS item_category FROM items\r\n"
+				  		                      + "where itemtype='expense';"); 
+				  VBox transactionList = new VBox(10);
+			      transactionList.setPadding(new Insets(10));
+			      transactionList.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cccccc; -fx-border-radius: 10px; -fx-background-radius: 10px;");
+				  while (rs.next()) 
+				  {  
+					  double amount=rs.getDouble("setAmount");
+					  String name=rs.getString("name");
+					  String category=rs.getString("item_category");
+					  //adding to table
+					  data.add(FXCollections.observableArrayList(name,category,amount));
+					  table.setItems(data);
+				  }
+				  
+			      table.getColumns().add(namecol);
+			      table.getColumns().add(categorycol);
+			      table.getColumns().add(amountcol);
+	        } catch (SQLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+	        
+	        //incomes table
+	        TableView<ObservableList<Object>> inctable= new TableView<>();
+	        namecol=new TableColumn<>("Name");
+	        namecol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(1)));
+	        categorycol=new TableColumn<>("Category");
+	        amountcol=new TableColumn<>("Amount");
+	        amountcol.setCellValueFactory(cellData -> new SimpleDoubleProperty((Double) cellData.getValue().get(4)).asObject());
+	        Design.Layout(inctable, Design.GetX(50), Design.GetY(10), roothome);
+	       //ObservableList for entries
+	        ObservableList<ObservableList<Object>> incdata= FXCollections.observableArrayList();
+	        
+	     // Transaction List
+	        try { 
+			      Statement stm= Main.con.createStatement(); 
+			      rs=stm.executeQuery("SELECT  name , setAmount\r\n"
+		                      + ",category AS item_category FROM items\r\n"
+		                      + "where itemtype='income';");
 				  VBox transactionList = new VBox(10);
 			      transactionList.setPadding(new Insets(10));
 			      transactionList.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cccccc; -fx-border-radius: 10px; -fx-background-radius: 10px;");
@@ -140,101 +209,21 @@ public class Modifications extends Canvas implements Navigation, Design{
 					  double amount=rs.getDouble("transaction_amount");
 					  String name=rs.getString("item_name");
 					  String category=rs.getString("item_category");
-					  String type=rs.getString("item_type");
-					  HBox box=createTransactionCard(strdate, type, name, amount);
-					  transactionList.getChildren().add(box);
 					  //adding to table
-					  data.add(FXCollections.observableArrayList(strdate,name,category,type,amount));
-					  table.setItems(data);
+					  incdata.add(FXCollections.observableArrayList(strdate,name,category,amount));
+					  inctable.setItems(incdata);
 				  }
-				  
-				  table.getColumns().add(datecol);
+	
 			      table.getColumns().add(namecol);
 			      table.getColumns().add(categorycol);
-			      table.getColumns().add(typecol);
 			      table.getColumns().add(amountcol);
-				  
-				  ScrollPane scrollpane=new ScrollPane(transactionList);
-				  scrollpane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-				  Design.Layout(scrollpane, 20, 140, roothome);
-				  scrollpane.setMaxHeight(500);
-				  scrollpane.setMinWidth(400);
-				  scrollpane.setFitToWidth(true);
-			      scrollpane.setStyle(" border-radius:5px;");
-			      rs=stm.executeQuery("SELECT  sum(amount) AS total_income FROM transaction where amount>0"); 
-			     // Summary Section
-			      HBox summary = new HBox(20);
-			      summary.setAlignment(Pos.CENTER);
-			      Label totalIncome = null;
-			        if (rs.next()) {
-			        	double amount=rs.getDouble("total_income");
-			        	totalIncome= new Label("Total Income: "+amount);
-			        	totalIncome.setFont(Design.H2Font());
-				        totalIncome.setTextFill(Color.GREEN);
-			        	
-			        }
-			        rs=stm.executeQuery("SELECT  sum(amount) AS total_expenses FROM transaction where amount<0");
-			        Label totalExpenses = null;
-				        if (rs.next()) {
-				        	double amount=rs.getDouble("total_expenses");
-				        	totalExpenses= new Label("Total Expenses: "+amount);
-					        totalExpenses.setFont(Design.H2Font());
-					        totalExpenses.setTextFill(Color.RED);
-				        	
-				        }
-			        summary.getChildren().addAll(totalIncome, totalExpenses);
-			        Design.Layout(summary, 20, 90, roothome);//add scrollpane
-			        //
-			        //Filter button processing
-			        //
-			        filterButton.setOnAction(e->{
-			        	String searchvalue=searchBar.getText();
-			        	System.out.println(searchvalue);
-			        	transactionList.getChildren().clear();
-					try {
-						if (searchvalue.isEmpty())
-						{
-							rs=stm.executeQuery("SELECT  date AS transaction_date, amount AS transaction_amount, name AS item_name,\r\n"
-		  		                      + "category AS item_category, itemtype AS item_type FROM transaction JOIN items i\r\n"
-		  		                      + "ON transaction.itemid = i.iditems ORDER BY transaction_date DESC;"); 
-							
-						}else {
-						 rs=stm.executeQuery("SELECT  date AS transaction_date, amount AS transaction_amount, name AS item_name,\r\n"
-							  		                      + "category AS item_category, itemtype AS item_type FROM transaction JOIN items i\r\n"
-							  		                      + "ON transaction.itemid = i.iditems Where name='"+searchvalue+"' OR  category='"+searchvalue+"' OR itemtype='"+searchvalue+"' ORDER BY transaction_date DESC;");
-						}
-						if (!rs.next()) {
-							HBox box=createTransactionCard("", "", "No transactions found", 00);
-							  box.setLayoutY(300);
-							  transactionList.getChildren().add(box);
-						}
-						while (rs.next()) 
-						  {  
-							  Date date=rs.getDate("transaction_date");
-							  String strdate=date.toString();
-							  double amount=rs.getDouble("transaction_amount");
-							  String name=rs.getString("item_name");
-							  String category=rs.getString("item_category");
-							  String type=rs.getString("item_type");
-							  HBox box=createTransactionCard(strdate, type, name, amount);
-							  box.setLayoutY(300);
-							  transactionList.getChildren().add(box);
-							  
-						  }
-					} catch (SQLException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					} 
-						  
-			        	
-			        });
-			
-				  }
-				  
-				  catch (SQLException e) 
-				  { // TODO Auto-generated catch block
-				  e.printStackTrace();
-				  System.out.println("flop with try");}
+	        } catch (SQLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+	        
+	     
 	        
 	      //btnback processing
 	         btnback.setOnAction(e->{
@@ -250,475 +239,8 @@ public class Modifications extends Canvas implements Navigation, Design{
 		 scene.setFill(new LinearGradient(0, 0, 1, 1, true,CycleMethod.NO_CYCLE,new Stop(0, Color.web("#ff7f50")),new Stop(1, Color.web("#6a5acd"))));
 		 //linear-gradient(to bottom right, #ff7f50, #6a5acd)
 	}
-	
-	{
-    	//
-    	//Getting info from textfile
-    	//
-		
-		  try(Scanner txtin = new Scanner(txtplan)) 
-		  { while(txtin.hasNext()) 
-		  { name=txtin.nextLine(); 
-		  path=txtin.nextLine(); 
-		  resetday=txtin.nextLine();
-		  
-		  } 
-		  }
-		  catch(FileNotFoundException ex) 
-		  { ex.printStackTrace(); }
-		 
-    	 //rootnode
-		 Group roothome= new Group();
-		 
-		 
-         //displaying name label
-         lblname= new Label("Welcome"+'\n'+name);
-         lblname.setFont(Design.H2Font());
-         Design.Layout(lblname, 30, 160, roothome);
-         
-         
-         //Label for budget overview
-         Label lbloverview= new Label("");
-         lbloverview.setFont(Design.H2Font());
-         Design.Layout(lbloverview, Design.GetX(12), Design.GetY(4), roothome);
-         
-         
-         //Button for editing budget
-         Button btnedit= new Button("Edit Budget");
-         btnedit.setFont(Design.ButtonFont());
-         Design.Layout(btnedit, Design.GetX(12), 160, roothome);
-         
-         
-         //Processing for editing budget button
-         btnedit.setOnAction(e->{
-        	 
-         });
-         
-         //Handling image
-         Image image = new Image("file:"+path);
-         ImageView imageView = new ImageView(image);
-         // Set size and position
-         imageView.setFitWidth(140);
-         imageView.setFitHeight(140);
-         Design.Layout(imageView, 30, 20, roothome);
-         // Clip the image to a circular shape
-         Circle clip = new Circle(70, 70, 70); // Center (50, 50) with radius 50
-         imageView.setClip(clip);
-         
-         
-         //Label for recent transactions
-         Label lblrecent=new Label();
-         lblrecent.setText("Latest Transactions");
-         lblrecent.setFont(Design.H2Font());
-         Design.Layout(lblrecent, Design.GetX(2), Design.GetY(30), roothome);
-         
-         
-       //Last 3 transactions section
-	        try { 
-			      Statement stm= Main.con.createStatement(); 
-				   rs=stm.executeQuery("SELECT  date AS transaction_date, amount AS transaction_amount, name AS item_name,\r\n"
-				  		                      + "category AS item_category, itemtype AS item_type FROM transaction JOIN items i\r\n"
-				  		                      + "ON transaction.itemid = i.iditems ORDER BY transaction_date DESC LIMIT 3;"); 
-				  VBox transactionList = new VBox(10);
-			      transactionList.setPadding(new Insets(10));
-			      transactionList.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cccccc; -fx-border-radius: 10px; -fx-background-radius: 10px;");
-			      while (rs.next()) 
-				  {  
-					  Date date=rs.getDate("transaction_date");
-					  String strdate=date.toString();
-					  double amount=rs.getDouble("transaction_amount");
-					  String name=rs.getString("item_name");
-					  String type=rs.getString("item_type");
-					  HBox box=History.createTransactionCard(strdate, type, name, amount);
-					  transactionList.getChildren().add(box);
-				  }
-				  ScrollPane scrollpane=new ScrollPane(transactionList);
-				  scrollpane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-				  Design.Layout(scrollpane, Design.GetX(2), Design.GetY(35), roothome);
-				  scrollpane.setMaxHeight(500);
-				  scrollpane.setMinWidth(250);
-				  scrollpane.setFitToWidth(true);
-			      scrollpane.setStyle(" border-radius:5px;");
-	        }catch(SQLException ex) {
-	        	ex.printStackTrace();
-	        }
-         
-  
-	        
-	        
-	      //Section for Top category
-	         Label lblcategory=new Label();
-	         lblcategory.setText("Top Spending Categories");
-	         lblcategory.setFont(Design.H2Font());
-	         Design.Layout(lblcategory, Design.GetX(20), Design.GetY(30), roothome);
-		        try { 
-				      Statement stm= Main.con.createStatement(); 
-				      ResultSet rs=stm.executeQuery("SELECT \r\n"
-				      		+ "    SUM(transaction.amount) AS amount, \r\n"
-				      		+ "    items.category \r\n"
-				      		+ "FROM \r\n"
-				      		+ "    transaction \r\n"
-				      		+ "JOIN \r\n"
-				      		+ "    items ON transaction.itemid = items.iditems \r\n"
-				      		+ "WHERE \r\n"
-				      		+ "    items.itemtype = 'expense' and transaction.amount<0 \r\n"
-				      		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())    -- Current year\r\n"
-				      		+ "    AND MONTH(transaction.date) = MONTH(CURDATE())  -- Current month\r\n"
-				      		+ "GROUP BY \r\n"
-				      		+ "    items.category \r\n"
-				      		+ "ORDER BY \r\n"
-				      		+ "    amount \r\n"
-				      		+ "LIMIT 3;\r\n"); 
-					  VBox transactionList = new VBox(10);
-				      transactionList.setPadding(new Insets(10));
-				      transactionList.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cccccc; -fx-border-radius: 10px; -fx-background-radius: 10px;");
-					  while (rs.next()) 
-					  {  
-						  LocalDate date=LocalDate.now();
-						  String strdate=date.toString();
-						  double amount=rs.getDouble("amount");
-						  String category=rs.getString("category");
-						  HBox box=History.createTransactionCard(strdate, "", category, amount);
-						  transactionList.getChildren().add(box);
-					  }
-					  ScrollPane scrollpane=new ScrollPane(transactionList);
-					  scrollpane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-					  Design.Layout(scrollpane, Design.GetX(20), Design.GetY(35), roothome);
-					  scrollpane.setMaxHeight(500);
-					  scrollpane.setMinWidth(250);
-					  scrollpane.setFitToWidth(true);
-				      scrollpane.setStyle(" border-radius:5px;");
-		        }catch(SQLException ex) {
-		        	ex.printStackTrace();
-		        }
-	         
-         
-         
-         //Month selection combobox(Indices start at 0)
-         ObservableList<String> strMonths= FXCollections.observableArrayList("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec");
-         ComboBox<String> cmbMonths= new ComboBox<String>(strMonths);
-         cmbMonths.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 15px; -fx-font: 18px \"Comic Sans Ms\";");
-         Design.Layout(cmbMonths, Design.GetX(65), Design.GetY(1), roothome);
-         cmbMonths.setPrefSize(100, 30);
-         LocalDate date=  LocalDate.now();
-         int intdate= date.getMonthValue();
-       //Spending graph
-         try { 
-         	//Calculating spending from db
-             Label lblpercentagespending=new Label();
-             try {
-    			stm= Main.con.createStatement();
-    			  rs=stm.executeQuery("SELECT sum(setAmount) FROM items Where itemtype='expense'");
-    			  double dblbudget=0;
-    			  double dblspent=0;
-    			  if (rs.next())
-    			  {
-    				  dblbudget+=rs.getDouble(1);
-    			  }
-    			 rs=stm.executeQuery("SELECT \r\n"
-  			  		+ "    SUM(transaction.amount) AS amount\r\n"
-  			  		+ "FROM \r\n"
-  			  		+ "    transaction\r\n"
-  			  		+ "JOIN \r\n"
-  			  		+ "    items ON transaction.itemid = items.iditems\r\n"
-  			  		+ "WHERE \r\n"
-  			  		+ "    items.itemtype = 'expense'and transaction.amount<0\r\n"
-  			  		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())\r\n"
-  			  		+ "    AND MONTH(transaction.date) = "+intdate+"\r\n"
-  			  		+ "");
-    			if (rs.next())
-  			  {
-  				  dblspent+=rs.getDouble(1);
-  			  }
-    			  dblspent=Math.abs(dblspent);
-    			  stm.close();
-    			  int spendingpercent=(int) (dblspent/dblbudget*100);
-    			  lblpercentagespending.setText( spendingpercent+"% Spent");
-    			  double barlength=Design.GetX(40)*spendingpercent/100;
-    			  double dblremaining=dblbudget-dblspent;
-    			  lbloverview.setText("Overview:"+ '\n'+"Budget: R"+dblbudget+'\n'+"Spent: R"+dblspent+'\n'+"Remaining: R"+dblremaining);
-    			  
-    			  
-    			//Stroking spending rectangles
-    			 
-    		         Canvas spendingcanvas= new Canvas(1000,200); 
-    		         GraphicsContext gc= spendingcanvas.getGraphicsContext2D();
-    		         Design.Layout(spendingcanvas, Design.GetX(25), Design.GetY(5), roothome); 
-    		         gc.setStroke(Color.FLORALWHITE);
-    		         gc.setFill(Color.FLORALWHITE);
-    		         gc.fillRoundRect(Design.GetX(25), Design.GetY(7),Design.GetX(40), 40,40, 40);
-    		       //percentage spending
-    				 if (spendingpercent<50)
-    					 gc.setFill(Color.LIGHTGREEN);
-    				 else if(spendingpercent>=50 && spendingpercent<80)
-    					 gc.setFill(Color.ORANGE);
-    				 else if (spendingpercent>=80 &&spendingpercent<=100)
-    					 gc.setFill(Color.RED);
-    		         gc.fillRoundRect(Design.GetX(25),Design.GetY(7),barlength,40,40,40);
-    		         
-    		         
-
-    		         lblpercentagespending.setFont(Design.ButtonFont());
-    		         Design.Layout(lblpercentagespending, Design.GetX(65), Design.GetY(18), roothome);
-    		         //displaying money spent label
-    		         Label lblmoneyspent= new Label("Monthly Spending:");
-    		         lblmoneyspent.setFont(Design.H2Font());
-    		         lblmoneyspent.setText("Monthly Spending:"+"R"+dblspent);
-    		         lblmoneyspent.setFont(Design.H2Font());
-    		         Design.Layout(lblmoneyspent, Design.GetX(60), Design.GetY(6), roothome);
-    		} catch (SQLException e) {
-    			// TODO Auto-generated catch block
-    			e.printStackTrace();
-    		}
-             
-             
- 		      Statement stm= Main.con.createStatement(); 
- 			  //ResultSet rs=stm.executeQuery("Select category, sum(actualAmount) as amount from items where type='expense' group by category"); 
- 			  ResultSet rs=stm.executeQuery("SELECT \r\n"
- 			  		+ "    items.category, \r\n"
- 			  		+ "    SUM(transaction.amount) AS amount\r\n"
- 			  		+ "FROM \r\n"
- 			  		+ "    transaction\r\n"
- 			  		+ "JOIN \r\n"
- 			  		+ "    items ON transaction.itemid = items.iditems\r\n"
- 			  		+ "WHERE \r\n"
- 			  		+ "    items.itemtype = 'expense'\r\n"
- 			  		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())\r\n"
- 			  		+ "    AND MONTH(transaction.date) = "+intdate+"\r\n"
- 			  		+ "GROUP BY \r\n"
- 			  		+ "    items.category;\r\n"
- 			  		+ "");
- 			  
- 			  ObservableList<PieChart.Data> piedata= FXCollections.observableArrayList();
- 			  while (rs.next()) 
- 			  { 
- 				  String category=rs.getString("category");
- 				  double amount=rs.getDouble("amount");
- 				  amount=Math.abs(amount);
- 				  piedata.add(new PieChart.Data(category, amount));
- 			  }
- 			  PieChart piechart= new PieChart(piedata);
- 			  piechart.setMinWidth(Design.GetX(36));
- 			  piechart.setTitle("Spending");
- 			  Design.Layout(piechart, Design.GetX(50), Design.GetY(38), roothome);
- 			 
- 			  }
- 			  catch (SQLException e) 
- 			  { // TODO Auto-generated catch block
- 			  e.printStackTrace();
- 			  System.out.println("flop with try");
- 			  }
-         cmbMonths.setPromptText(strMonths.get(intdate-1));
-         cmbMonths.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
-             @Override
-             public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                 // Event triggered when a new selection is made
-                 int month=cmbMonths.getSelectionModel().getSelectedIndex();
-                 month++;
-                 if (month==0) {
-                	 month=date.getMonthValue();
-                 }
-                 Populate(roothome,month);
-             }
-         });
-         cmbMonths.valueProperty().addListener((observable, oldValue, newValue) -> {
-         });
-         
-         
-        
-         
-         
-         //Transact button
-         btntransact= new Button("Transact");
-         btntransact.setPrefSize(280, 30);
-         btntransact.setFont(Design.ButtonFont());
-         btntransact.setStyle(Design.ButtonStyle());
-         Design.Layout(btntransact, Design.GetX(61), Design.GetY(23), roothome);
-         
-         
-         //Previous Transact button
-         //
-         btnprevtransact= new Button("View Transactions");
-         btnprevtransact.setPrefSize(150, 30);
-         btnprevtransact.setFont(Design.ButtonFont());
-         btnprevtransact.setStyle(Design.ButtonStyle());
-         btnprevtransact.setLayoutX(210);
-         btnprevtransact.setLayoutY(240);
-         Design.Layout(btnprevtransact, Design.GetX(65), Design.GetY(30), roothome);
-         
-         //btnprevtransact processing
-         btnprevtransact.setOnAction(e->{
-        	 Navigation.toHistoryPage();
-         });
-         
-         
-         
-			 
-         
-         //more info button
-         btnmore= new Button("More Info");
-         btnmore.setPrefSize(150, 30);
-         btnmore.setFont(Design.ButtonFont());
-         btnmore.setStyle(Design.ButtonStyle());
-         Design.Layout(btnmore, 210, 700, roothome);
-         btnmore.setOnAction(e->{
-        	 Navigation.toGraphs();
-        	 
-         });
-         
-         
-         //Adding infobutton to button
-         Image imginfo= new Image("file:data/images/MoreInfoIcon.jpeg");
-         ImageView view= new ImageView(imginfo);
-         view.setFitHeight(20);
-         view.setFitWidth(20);
-         btnmore.setGraphic(view);
-         
-         
-         //Adding components to root node
-		 roothome.getStyleClass().add("color-palette");
-		 scene= new Scene(roothome);
-		 
-		 
-		 //colour of the scene
-		 scene.setFill(new LinearGradient(0, 0, 1, 1, true,CycleMethod.NO_CYCLE,new Stop(0, Color.web("#DCE8E0")),new Stop(1, Color.web("#D2D8D6"))));
-		 
-		 //linear-gradient(to bottom right, #ff7f50, #6a5acd)
-
-		 
-		 //Buttons code
-		 btntransact.setOnAction(e->
-			{
-				Navigation.toTransactionPage();
-				
-			});
-			/*
-			 * imgprofileview.setOnMouseClicked(e-> { Main.ps.setScene(getscene());
-			 * 
-			 * });
-			 */
-	}
-
 	public Scene getscene()
 	{
 		return scene;
-	}
-	private void Populate(Group roothome,int month) {
-		//Spending graph
-        try { 
-        	//Calculating spending from db
-            Label lblpercentagespending=new Label();
-            try {
-   			stm= Main.con.createStatement();
-   			  rs=stm.executeQuery("SELECT sum(setAmount) FROM items Where itemtype='expense'");
-   			  double dblbudget=0;
-   			  double dblspent=0;
-   			  if (rs.next())
-   			  {
-   				  dblbudget+=rs.getDouble(1);
-   			  }
-   			 rs=stm.executeQuery("SELECT \r\n"
- 			  		+ "    SUM(transaction.amount) AS amount\r\n"
- 			  		+ "FROM \r\n"
- 			  		+ "    transaction\r\n"
- 			  		+ "JOIN \r\n"
- 			  		+ "    items ON transaction.itemid = items.iditems\r\n"
- 			  		+ "WHERE \r\n"
- 			  		+ "    items.itemtype = 'expense'\r\n"
- 			  		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())\r\n"
- 			  		+ "    AND MONTH(transaction.date) = "+month+"\r\n"
- 			  		+ "");
-   			if (rs.next())
- 			  {
- 				  dblspent+=rs.getDouble(1);
- 			  }
-   			dblspent=Math.abs(dblspent);
-   			  double dblremaining=dblspent;
-   			  stm.close();
-   			  int spendingpercent=(int) (dblremaining/dblbudget*100);
-   			  lblpercentagespending.setText( spendingpercent+"% Spent");
-   			  double barlength=Design.GetX(40)*spendingpercent/100;
-   			  
-   			  
-   			//Stroking spending rectangles
-   			 
-   		         Canvas spendingcanvas= new Canvas(1000,200); 
-   		         GraphicsContext gc= spendingcanvas.getGraphicsContext2D();
-   		         spendingcanvas.setLayoutX(Design.GetX(25));
-   		         spendingcanvas.setLayoutY(Design.GetY(5));
-   		         roothome.getChildren().set(7, spendingcanvas);
-   		         gc.setStroke(Color.FLORALWHITE);
-   		         gc.setFill(Color.FLORALWHITE);
-   		         gc.fillRoundRect(Design.GetX(25), Design.GetY(7),Design.GetX(40), 40,40, 40);
-   		       //percentage spending
-   				 if (spendingpercent<50)
-   					 gc.setFill(Color.LIGHTGREEN);
-   				 else if(spendingpercent>=50 && spendingpercent<80)
-   					 gc.setFill(Color.ORANGE);
-   				 else if (spendingpercent>=80 &&spendingpercent<=100)
-   					 gc.setFill(Color.RED);
-   		         gc.fillRoundRect(Design.GetX(25),Design.GetY(7),barlength,40,40,40);
-   		         
-   		         
-
-   		         lblpercentagespending.setFont(Design.ButtonFont());
-   		         lblpercentagespending.setLayoutX(Design.GetX(65));
-   		         lblpercentagespending.setLayoutY(Design.GetY(18)); 
-   		         roothome.getChildren().set(8, lblpercentagespending);
-   		       //Available balance handling
-   		         Label lblavail= new Label();
-   		         String strspent=Double.toString(dblremaining);
-   		      //displaying money spent label
-   		         Label lblmoneyspent= new Label("Monthly Spending:");
-   		         lblmoneyspent.setFont(Design.H2Font());
-   		         lblmoneyspent.setText("Monthly Spending:"+"R"+strspent);
-   		         lblmoneyspent.setFont(Design.H2Font());
-   		         lblmoneyspent.setLayoutX(Design.GetX(60));
-   		         lblmoneyspent.setLayoutY(Design.GetY(6)); 
-   		         roothome.getChildren().set(9, lblmoneyspent);
-   		} catch (SQLException e) {
-   			// TODO Auto-generated catch block
-   			e.printStackTrace();
-   		}
-            
-            
-		      Statement stm= Main.con.createStatement(); 
-			  ResultSet rs=stm.executeQuery("SELECT \r\n"
-			  		+ "    items.category, \r\n"
-			  		+ "    SUM(transaction.amount) AS amount\r\n"
-			  		+ "FROM \r\n"
-			  		+ "    transaction\r\n"
-			  		+ "JOIN \r\n"
-			  		+ "    items ON transaction.itemid = items.iditems\r\n"
-			  		+ "WHERE \r\n"
-			  		+ "    items.itemtype = 'expense'\r\n"
-			  		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())\r\n"
-			  		+ "    AND MONTH(transaction.date) = "+month+"\r\n"
-			  		+ "GROUP BY \r\n"
-			  		+ "    items.category;\r\n"
-			  		+ "");
-			  
-			  ObservableList<PieChart.Data> piedata= FXCollections.observableArrayList();
-			  while (rs.next()) 
-			  { 
-				  String category=rs.getString("category");
-				  double amount=rs.getDouble("amount");
-				  amount=Math.abs(amount);
-				  piedata.add(new PieChart.Data(category, amount));
-			  }
-			  PieChart piechart= new PieChart(piedata);
-			  piechart.setMinWidth(Design.GetX(36));
-			  piechart.setTitle("Spending");
-			  piechart.setLayoutX(Design.GetX(50));
-			  piechart.setLayoutY(Design.GetY(38));
-			  roothome.getChildren().set(10, piechart);
-			 
-			  }
-			  catch (SQLException e) 
-			  { // TODO Auto-generated catch block
-			  e.printStackTrace();
-			  System.out.println("flop with try");
-			  }
-		
 	}
 }

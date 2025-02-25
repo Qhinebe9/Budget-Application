@@ -526,29 +526,36 @@ public class NewUser extends Main implements Navigation,Design {
 
 				        // Format the LocalDateTime to the desired format: yyyy-MM-dd HH:mm:ss
 				        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+				        
 				        String formattedDateTime = dateTime.format(formatter);
+				        System.out.println(formattedDateTime);
 				        Statement stm;
-						try {
-							stm = Main.con.createStatement();
-							stm.execute("DROP EVENT IF EXISTS reset_actual_amounts;\r\n"
-									+ "CREATE EVENT reset_actual_amounts\r\n"
-									+ "ON SCHEDULE EVERY 1 MONTH\r\n"
-									+ "STARTS '"+formattedDateTime+"'\r\n"
-									+ "DO\r\n"
-									+ "BEGIN\r\n"
-									+ "    UPDATE items\r\n"
-									+ "    SET actualAmount = setAmount\r\n"
-									+ "    WHERE itemtype = 'expense';\r\n"
-									+ "\r\n"
-									+ "    -- Reset actualAmount for 'income' type to 0.00\r\n"
-									+ "    UPDATE items\r\n"
-									+ "    SET actualAmount = 0.00\r\n"
-									+ "    WHERE itemtype = 'income';\r\n");
-						    stm.close();
-						} catch (SQLException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}	
+				        try {
+				            stm = Main.con.createStatement();
+
+				            // Drop the event if it exists
+				            stm.execute("DROP EVENT IF EXISTS reset_actual_amounts");
+
+				            // Create the event with proper formatting
+				            String createEventQuery = 
+				                "CREATE EVENT reset_actual_amounts " +
+				                "ON SCHEDULE EVERY 1 MONTH " +
+				                "STARTS '" + formattedDateTime + "' " +  // Ensure formattedDateTime is quoted
+				                "DO " +
+				                "BEGIN " +
+				                "    UPDATE items " +
+				                "    SET actualAmount = setAmount " +
+				                "    WHERE itemtype = 'expense'; " +
+				                "    UPDATE items " +
+				                "    SET actualAmount = 0.00 " +
+				                "    WHERE itemtype = 'income'; " +
+				                "END";
+
+				            stm.execute(createEventQuery);
+				            stm.close();
+				        } catch (SQLException e1) {
+				            e1.printStackTrace();
+				        }	
 				  
 				  });
 				 

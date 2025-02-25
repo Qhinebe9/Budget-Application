@@ -93,6 +93,7 @@ public class Homepage extends Canvas implements Navigation, Design{
          
          //Processing for editing budget button
          btnedit.setOnAction(e->{
+        	 Navigation.toModPage();
         	 
          });
          
