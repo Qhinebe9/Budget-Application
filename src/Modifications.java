@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -26,6 +27,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -34,6 +36,7 @@ import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
+import javafx.util.StringConverter;
 public class Modifications extends Canvas implements Navigation, Design{
 	
 	Scene scene;
@@ -222,13 +225,52 @@ public class Modifications extends Canvas implements Navigation, Design{
 	        
 	     // Expenses table
 	        TableView<ObservableList<Object>> table = new TableView<>();
+	        table.setEditable(true);
 	        TableColumn<ObservableList<Object>, String> namecol = new TableColumn<>("Name");
 	        namecol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(0))); // Index 0 for name
+	        namecol.setCellFactory(TextFieldTableCell.forTableColumn());
+	        namecol.setOnEditCommit(e->{
+	        	ObservableList<Object> row=e.getRowValue();
+	        	row.set(0,e.getNewValue());
+	        });
 	        TableColumn<ObservableList<Object>, String> categorycol = new TableColumn<>("Category");
 	        categorycol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(1))); // Index 1 for category
+	        categorycol.setCellFactory(TextFieldTableCell.forTableColumn());
+	        categorycol.setOnEditCommit(e->{
+	        	ObservableList<Object> row=e.getRowValue();
+	        	row.set(1,e.getNewValue());
+	        });
 	        TableColumn<ObservableList<Object>, Double> amountcol = new TableColumn<>("Budgeted Amount");
 	        amountcol.setCellValueFactory(cellData -> new SimpleDoubleProperty((Double) cellData.getValue().get(2)).asObject()); // Index 2 for amount
-            setTableStyle(table,namecol, categorycol,amountcol);
+	        StringConverter<Double> doubleConverter = new StringConverter<>() {
+	            @Override
+	            public String toString(Double object) {
+	                return object != null ? object.toString() : ""; // Convert Double to String
+	            }
+
+	            @Override
+	            public Double fromString(String string) {
+	                try {
+	                    return Double.parseDouble(string);  // Convert String to Double
+	                } catch (NumberFormatException e) {
+	                    return 0.0;  // If invalid input, return a default value (could be customized)
+	                }
+	            }
+	        };
+	        // Apply custom StringConverter to the Amount column
+	        amountcol.setCellFactory(TextFieldTableCell.forTableColumn(doubleConverter));
+	        amountcol.setOnEditCommit(event -> {
+	            ObservableList<Object> row = event.getRowValue();
+	            try {
+	                // Update the "amount" in the row after converting the value
+	                row.set(2, Double.parseDouble(event.getNewValue().toString()));  // Update the "amount" in the row
+	            } catch (NumberFormatException e) {
+	                // Handle the case where the value is not a valid double
+	                System.out.println("Invalid input for amount. Please enter a valid number.");
+	            }
+	        });
+
+	        setTableStyle(table,namecol, categorycol,amountcol);
 	        // ObservableList for entries
 	        ObservableList<ObservableList<Object>> data = FXCollections.observableArrayList();
 
@@ -263,6 +305,18 @@ public class Modifications extends Canvas implements Navigation, Design{
 	            // Handle SQL exception
 	            e1.printStackTrace();
 	        }
+	     // Create a Save Button
+	        Button expsave = new Button("Save");
+	        expsave.setFont(Design.ButtonFont());
+	        expsave.setStyle(Design.ButtonStyle());
+	        expsave.setOnAction(event -> {
+	            updateDatabase(table);
+	        });
+
+	        // Add button to the layout
+	        Design.Layout(expsave, Design.GetX(55), Design.GetY(50),roothome);  // Adjust X, Y positions as needed
+
+
 
 	     // Incomes table
 	        TableView<ObservableList<Object>> inctable = new TableView<>();
@@ -367,6 +421,35 @@ public class Modifications extends Canvas implements Navigation, Design{
 
         // Add padding around the cells for better spacing
         table.setStyle("-fx-padding: 10;");
+    }
+ // Method to update the database based on edited rows
+    private void updateDatabase(TableView<ObservableList<Object>> table) {
+        try {
+            // Loop through the rows in the table
+            for (ObservableList<Object> row : table.getItems()) {
+                // Extract values from the row
+                String name = (String) row.get(0);  // Name column
+                String category = (String) row.get(1);  // Category column
+                Double amount = (Double) row.get(2);  // Amount column
+
+                // Create SQL update statement
+                String query = "UPDATE items SET setAmount = ?, category = ? WHERE name = ?";
+                PreparedStatement pstmt = Main.con.prepareStatement(query);
+
+                // Set values to prepared statement
+                pstmt.setDouble(1, amount);
+                pstmt.setString(2, category);
+                pstmt.setString(3, name);
+
+                // Execute the update
+                pstmt.executeUpdate();
+            }
+            // Optionally, show a success message after saving
+            System.out.println("Data saved successfully!");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
 }

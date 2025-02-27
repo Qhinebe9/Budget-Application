@@ -1,12 +1,7 @@
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,24 +10,15 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 
 public class Transaction extends Canvas implements Navigation, Design {
 	Button btnadd;
@@ -105,7 +91,7 @@ public class Transaction extends Canvas implements Navigation, Design {
          //Add button
          btnadd= new Button("Add");
          btnadd.setPrefSize(230, 30);
-         Design.Layout(btnadd, 160, 250, roothome);
+         Design.Layout(btnadd, 170, 250, roothome);
          //Transacting button styling
          btnadd.setFont(Design.ButtonFont());
          btnadd.setStyle(Design.ButtonStyle());
@@ -114,10 +100,11 @@ public class Transaction extends Canvas implements Navigation, Design {
          //btnadd processing
          btnadd.setOnAction(e->
          {
-        	 Pattern netpaypat= Pattern.compile("\\d*[.,]?\\d{0,2}");
+        	 Pattern netpaypat= Pattern.compile("^-?\\\\d+(\\\\.\\\\d{1,2})?$");
 			 Matcher netpaymatcher=netpaypat.matcher((CharSequence) txtamount.getText());
 			 if(netpaymatcher.matches())
 			 {
+				 System.out.println();
 				 try {
 					 double dbladd=Double.parseDouble(txtamount.getText());
 					  stm= Main.con.createStatement();
@@ -147,7 +134,7 @@ public class Transaction extends Canvas implements Navigation, Design {
          btndeduct.setPrefSize(230, 30);
          btndeduct.setLayoutX(160);
          btndeduct.setLayoutY(330);
-         Design.Layout(btndeduct, 160, 330, roothome);
+         Design.Layout(btndeduct, 100, 330, roothome);
          btndeduct.setFont(Design.ButtonFont());
          btndeduct.setStyle(Design.ButtonStyle());
          
@@ -155,19 +142,21 @@ public class Transaction extends Canvas implements Navigation, Design {
          //btndeduct processing
          btndeduct.setOnAction(e->
          {
-        	 Pattern netpaypat= Pattern.compile("\\d*[.,]?\\d{0,2}");
+        	 Pattern netpaypat= Pattern.compile("\\d*[.,]?d{0,2}");
 			 Matcher netpaymatcher=netpaypat.matcher((CharSequence) txtamount.getText());
 			 if(netpaymatcher.matches())
 			 {
 				 try {
 					 double dblded=Double.parseDouble(txtamount.getText());
 					  stm= Main.con.createStatement();
-					  StringTokenizer st= new StringTokenizer(cmbitems.getSelectionModel().getSelectedItem()," ");
+					  StringTokenizer st= new StringTokenizer(cmbitems.getSelectionModel().getSelectedItem(),"(");
 					  String name=st.nextToken();
-					  
+					  name=name.trim();
+					  System.out.println(name);
 					  rs=stm.executeQuery("SELECT iditems,name,actualAmount FROM items Where name='"+name+"'");
 					  if (rs.next())
 					  {
+						  System.out.println("gets here");
 						  LocalDateTime date=LocalDateTime.now();
 						  int itemid=rs.getInt("iditems");
 						  double actualamount=rs.getDouble("actualAmount");
@@ -186,6 +175,8 @@ public class Transaction extends Canvas implements Navigation, Design {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
+			 }else {
+				 System.out.println("not working");
 			 }
            });
          
