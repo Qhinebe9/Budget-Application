@@ -1,4 +1,4 @@
-package main.java;
+package Main.java;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.ResultSet;
