@@ -1,3 +1,5 @@
+package main.java;
+
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
