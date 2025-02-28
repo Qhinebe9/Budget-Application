@@ -131,7 +131,7 @@ public class Graphs extends Canvas implements Navigation, Design {
 				double setamount = rs.getDouble("totalSetAmount");
 				double actualspent=setamount-amount;
 				series1.getData().add(new XYChart.Data<>(category, setamount));
-				series2.getData().add(new XYChart.Data<>(category, actualspent));
+				series2.getData().add(new XYChart.Data<>(category, amount));
 
 			}
 			seriesList.add(series1);

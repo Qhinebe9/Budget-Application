@@ -100,11 +100,10 @@ public class Transaction extends Canvas implements Navigation, Design {
          //btnadd processing
          btnadd.setOnAction(e->
          {
-        	 Pattern netpaypat= Pattern.compile("^-?\\\\d+(\\\\.\\\\d{1,2})?$");
+        	 Pattern netpaypat= Pattern.compile("\\d*[.,]?d{0,2}");
 			 Matcher netpaymatcher=netpaypat.matcher((CharSequence) txtamount.getText());
 			 if(netpaymatcher.matches())
 			 {
-				 System.out.println();
 				 try {
 					 double dbladd=Double.parseDouble(txtamount.getText());
 					  stm= Main.con.createStatement();

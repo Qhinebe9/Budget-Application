@@ -224,6 +224,10 @@ public class Modifications extends Canvas implements Navigation, Design{
 	        Design.Layout(btndetails, Design.GetX(22), Design.GetY(35), roothome);
 	        
 	     // Expenses table
+	        Label lblexpense= new Label("Click on the cell(s) you would like to change, and click save when done");
+	        lblexpense.setFont(Design.ButtonFont());
+	        Design.Layout(lblexpense, Design.GetX(11), Design.GetY(42), roothome);
+	        
 	        TableView<ObservableList<Object>> table = new TableView<>();
 	        table.setEditable(true);
 	        TableColumn<ObservableList<Object>, String> namecol = new TableColumn<>("Name");
@@ -271,6 +275,7 @@ public class Modifications extends Canvas implements Navigation, Design{
 	        });
 
 	        setTableStyle(table,namecol, categorycol,amountcol);
+	        table.setPrefHeight(Design.GetY(50)-Design.GetY(10));
 	        // ObservableList for entries
 	        ObservableList<ObservableList<Object>> data = FXCollections.observableArrayList();
 
@@ -314,25 +319,67 @@ public class Modifications extends Canvas implements Navigation, Design{
 	        });
 
 	        // Add button to the layout
-	        Design.Layout(expsave, Design.GetX(55), Design.GetY(50),roothome);  // Adjust X, Y positions as needed
+	        Design.Layout(expsave, Design.GetX(25), Design.GetY(90),roothome);  // Adjust X, Y positions as needed
 
 
 
 	     // Incomes table
+	        Label lblsave= new Label("Click on the cell(s) you would like to change, and click save when done");
+	        lblsave.setFont(Design.ButtonFont());
+	        Design.Layout(lblsave, Design.GetX(50), Design.GetY(9), roothome);
+	        
 	        TableView<ObservableList<Object>> inctable = new TableView<>();
+	        inctable.setEditable(true);
 	        namecol = new TableColumn<>("Name");
 	        namecol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(0))); // Index 0 for name
+	        namecol.setCellFactory(TextFieldTableCell.forTableColumn());
+	        namecol.setOnEditCommit(e->{
+	        	ObservableList<Object> row=e.getRowValue();
+	        	row.set(0,e.getNewValue());
+	        });
 	        categorycol = new TableColumn<>("Category");
 	        categorycol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(1))); // Index 1 for category
+	        categorycol.setCellFactory(TextFieldTableCell.forTableColumn());
+	        categorycol.setOnEditCommit(e->{
+	        	ObservableList<Object> row=e.getRowValue();
+	        	row.set(1,e.getNewValue());
+	        });
 	        amountcol = new TableColumn<>("Amount");
 	        amountcol.setCellValueFactory(cellData -> new SimpleDoubleProperty((Double) cellData.getValue().get(2)).asObject()); // Index 2 for amount
+	        doubleConverter = new StringConverter<>() {
+	            @Override
+	            public String toString(Double object) {
+	                return object != null ? object.toString() : ""; // Convert Double to String
+	            }
+
+	            @Override
+	            public Double fromString(String string) {
+	                try {
+	                    return Double.parseDouble(string);  // Convert String to Double
+	                } catch (NumberFormatException e) {
+	                    return 0.0;  // If invalid input, return a default value (could be customized)
+	                }
+	            }
+	        };
+	     // Apply custom StringConverter to the Amount column
+	        amountcol.setCellFactory(TextFieldTableCell.forTableColumn(doubleConverter));
+	        amountcol.setOnEditCommit(event -> {
+	            ObservableList<Object> row = event.getRowValue();
+	            try {
+	                // Update the "amount" in the row after converting the value
+	                row.set(2, Double.parseDouble(event.getNewValue().toString()));  // Update the "amount" in the row
+	            } catch (NumberFormatException e) {
+	                // Handle the case where the value is not a valid double
+	                System.out.println("Invalid input for amount. Please enter a valid number.");
+	            }
+	        });
 	        setTableStyle(inctable,namecol, categorycol,amountcol);
 	        inctable.setPrefHeight(Design.GetY(50)-Design.GetY(15));
 	        // ObservableList for entries
 	        ObservableList<ObservableList<Object>> incdata = FXCollections.observableArrayList();
 
 	        // Layout setup
-	        Design.Layout(inctable, Design.GetX(50), Design.GetY(10), roothome);
+	        Design.Layout(inctable, Design.GetX(50), Design.GetY(13), roothome);
 
 	        // Fetch data and populate table
 	        try { 
@@ -361,6 +408,17 @@ public class Modifications extends Canvas implements Navigation, Design{
 	            // Handle SQL exception
 	            e1.printStackTrace();
 	        }
+	     // Create a Save Button
+	        Button incsave = new Button("Save");
+	        incsave.setFont(Design.ButtonFont());
+	        incsave.setStyle(Design.ButtonStyle());
+	        incsave.setOnAction(event -> {
+	            updateDatabase(inctable);
+	        });
+
+	        // Add button to the layout
+	        Design.Layout(incsave, Design.GetX(65), Design.GetY(50),roothome);  // Adjust X, Y positions as needed
+
 
 	        
 	       

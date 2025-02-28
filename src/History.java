@@ -26,6 +26,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
@@ -204,6 +205,7 @@ public class History extends Canvas implements Navigation, Design {
 						  
 			        	
 			        });
+			        setTableStyle(table,namecol, categorycol,amountcol);
 			
 				  }
 				  
@@ -271,6 +273,37 @@ public class History extends Canvas implements Navigation, Design {
         HBox.setHgrow(details, Priority.ALWAYS);
         return card;
     }
+	 private void setTableStyle(TableView<ObservableList<Object>> table,TableColumn<ObservableList<Object>, String> namecol, TableColumn<ObservableList<Object>, String> categorycol,TableColumn<ObservableList<Object>, Double> amountcol) {
+	        // Set column width (adjust based on your content)
+	        namecol.setMinWidth(200);
+	        categorycol.setMinWidth(150);
+	        amountcol.setMinWidth(150);
+
+	        // Set background color for the table and alternating row colors
+	        table.setStyle("-fx-background-color: #ffffff;-fx-border-radius:20px;");
+	        table.setRowFactory(tv -> {
+	            TableRow<ObservableList<Object>> row = new TableRow<>();
+	            row.setStyle("-fx-border-color: #ffffff; -fx-border-width: 0 0 0px 0;");
+	            row.setOnMouseClicked(event -> {
+	                if (!row.isEmpty()) {
+	                    row.setStyle("-fx-background-color: #ffffff;"); // Highlight row on click
+	                }
+	            });
+	            return row;
+	        });
+
+	        // Add alternating row striping for readability
+	        table.setRowFactory(tv -> {
+	            TableRow<ObservableList<Object>> row = new TableRow<>();
+	            row.setStyle("-fx-background-color: #ffffff;");
+	            row.setOnMouseEntered(event -> row.setStyle("-fx-background-color: #f0f0f0;"));
+	            row.setOnMouseExited(event -> row.setStyle("-fx-background-color: #ffffff;"));
+	            return row;
+	        });
+
+	        // Add padding around the cells for better spacing
+	        table.setStyle("-fx-padding: 10;");
+	    }
 	
 
 }

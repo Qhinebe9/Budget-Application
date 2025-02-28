@@ -25,7 +25,13 @@ public class Main extends Application {
 	{
 		try {
 			//
-			con=  DriverManager.getConnection("jdbc:mysql://localhost:3306/budgetdb","root","Qhinebe13.");
+			String dburl=System.getenv("JAWSDB_URL");
+			if (dburl!=null) {
+				con=  DriverManager.getConnection(dburl);	
+			}
+			else {
+				System.out.println("JAWSDB environment var not found");
+			}
 			
 		} catch ( SQLException e) {
 			// TODO Auto-generated catch block
