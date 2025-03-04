@@ -27,7 +27,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>main.java.Main</mainClass> <!-- Replace with your actual Main class -->
+                            <mainClass>Main</mainClass> <!-- Replace with your actual Main class -->
                         </manifest>
                     </archive>
                 </configuration>
