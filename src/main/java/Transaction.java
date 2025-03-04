@@ -1,4 +1,4 @@
-package Main.java;
+package main.java;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -7,6 +7,8 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Group;
@@ -15,11 +17,15 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
+import javafx.util.StringConverter;
 
 public class Transaction extends Canvas implements Navigation, Design {
 	Button btnadd;
@@ -179,6 +185,55 @@ public class Transaction extends Canvas implements Navigation, Design {
 				 System.out.println("not working");
 			 }
            });
+         
+         
+         
+         // Expenses table
+	        Label lblexpense= new Label("Amounts left in each item");
+	        lblexpense.setFont(Design.ButtonFont());
+	        Design.Layout(lblexpense, Design.GetX(50), Design.GetY(10), roothome);
+	        
+	        TableView<ObservableList<Object>> table = new TableView<>();
+	        TableColumn<ObservableList<Object>, String> namecol = new TableColumn<>("Name");
+	        namecol.setCellValueFactory(cellData -> new SimpleStringProperty((String) cellData.getValue().get(0)));
+	   
+	        TableColumn<ObservableList<Object>, Double> amountcol = new TableColumn<>("Amount Available");
+	        amountcol.setCellValueFactory(cellData -> new SimpleDoubleProperty((Double) cellData.getValue().get(1)).asObject()); 
+
+	        //setTableStyle(table,namecol, categorycol,amountcol);
+	        table.setPrefHeight(Design.GetY(50)-Design.GetY(10));
+	        // ObservableList for entries
+	        ObservableList<ObservableList<Object>> data = FXCollections.observableArrayList();
+
+	        // Layout setup
+	        Design.Layout(table, Design.GetX(50), Design.GetY(13), roothome);
+
+	        // Fetch data and populate table
+	        try {
+	            // Create Statement to execute SQL query
+	            Statement stm = Main.con.createStatement();
+	            ResultSet rs = stm.executeQuery("SELECT name, actualAmount FROM items WHERE itemtype='expense';");
+
+	            while (rs.next()) {
+	                // Get values from the result set
+	                String name = rs.getString("name");
+	                double amount = rs.getDouble("actualAmount");
+
+	                // Adding to table data
+	                data.add(FXCollections.observableArrayList(name, amount));
+	            }
+
+	            // Set items to TableView
+	            table.setItems(data);
+
+	            // Add columns to TableView
+	            table.getColumns().add(namecol);
+	            table.getColumns().add(amountcol);
+
+	        } catch (SQLException e1) {
+	            // Handle SQL exception
+	            e1.printStackTrace();
+	        }
          
          
          //btnback processing

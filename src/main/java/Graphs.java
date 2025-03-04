@@ -1,4 +1,4 @@
-package Main.java;
+package main.java;
 import java.io.File;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -241,7 +241,7 @@ public class Graphs extends Canvas implements Navigation, Design {
 			lineChart.setTitle("Monthly Balance");
 			XYChart.Series<String, Number> series = new XYChart.Series<>();
 			series.setName("Hover/click data point to view more info.");
-			int index = 0;
+			int index = 1;
 			while (rs.next()) {
 				double amount = rs.getDouble("amount");
 				amount = Math.abs(amount);
@@ -305,7 +305,7 @@ public class Graphs extends Canvas implements Navigation, Design {
 					lineChart.setTitle("Monthly Income");
 					XYChart.Series<String, Number> series = new XYChart.Series<>();
 					series.setName("Hover/click data point to view more info.");
-					int index = 0;
+					int index = 1;
 					while (rs.next()) {
 						double amount = rs.getDouble("amount");
 						amount = Math.abs(amount);

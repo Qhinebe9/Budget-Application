@@ -27,7 +27,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>/Budget_Application/src/Main.java</mainClass> <!-- Replace with your actual Main class -->
+                            <mainClass>main.java.Main</mainClass> <!-- Replace with your actual Main class -->
                         </manifest>
                     </archive>
                 </configuration>

@@ -1,4 +1,4 @@
-package Main.java;
+package main.java;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,14 +26,15 @@ public class Main extends Application {
 	public static void createConnection()
 	{
 		try {
-			//
-			String dburl=System.getenv("JAWSDB_URL");
+			//"jdbc:mysql://localhost:3306/budgetdb","root","Qhinebe13."
+			/*String dburl=System.getenv("JAWSDB_URL");
 			if (dburl!=null) {
-				con=  DriverManager.getConnection(dburl);	
+				con=  DriverManager.getConnection("jdbc:mysql://localhost:3306/budgetdb","root","Qhinebe13.");	
 			}
 			else {
 				System.out.println("JAWSDB environment var not found");
-			}
+			}*/
+		con=  DriverManager.getConnection("jdbc:mysql://localhost:3306/budgetdb","root","Qhinebe13.");
 			
 		} catch ( SQLException e) {
 			// TODO Auto-generated catch block

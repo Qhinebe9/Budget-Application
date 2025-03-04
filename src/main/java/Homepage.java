@@ -1,4 +1,4 @@
-package Main.java;
+package main.java;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.ResultSet;
@@ -205,7 +205,22 @@ public class Homepage extends Canvas implements Navigation, Design{
          Design.Layout(cmbMonths, Design.GetX(65), Design.GetY(1), roothome);
          cmbMonths.setPrefSize(100, 30);
          LocalDate date=  LocalDate.now();
+         int year=date.getYear();
          int intdate= date.getMonthValue();
+         
+       //personal details set up
+	        try(Scanner txtin = new Scanner(txtplan)) 
+			  { while(txtin.hasNext()) 
+			  { name=txtin.nextLine(); 
+			  path=txtin.nextLine(); 
+			  resetday=txtin.nextLine();
+			  
+			  } 
+			  }
+			  catch(FileNotFoundException ex) 
+			  { ex.printStackTrace(); }
+	        int intreset= Integer.parseInt(resetday);
+         
        //Spending graph
          try { 
          	//Calculating spending from db
@@ -219,6 +234,9 @@ public class Homepage extends Canvas implements Navigation, Design{
     			  {
     				  dblbudget+=rs.getDouble(1);
     			  }
+    			  int month=date.getMonthValue();
+    			  int previousMonth = (month == 1) ? 12 : month - 1;  // If the month is January, the previous month is December
+    			  int previousYear = (month == 1) ? year - 1 : year;
     			 rs=stm.executeQuery("SELECT \r\n"
   			  		+ "    SUM(transaction.amount) AS amount\r\n"
   			  		+ "FROM \r\n"
@@ -226,10 +244,10 @@ public class Homepage extends Canvas implements Navigation, Design{
   			  		+ "JOIN \r\n"
   			  		+ "    items ON transaction.itemid = items.iditems\r\n"
   			  		+ "WHERE \r\n"
-  			  		+ "    items.itemtype = 'expense'and transaction.amount<0\r\n"
-  			  		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())\r\n"
-  			  		+ "    AND MONTH(transaction.date) = "+intdate+"\r\n"
-  			  		+ "");
+  			  		+ "items.itemtype = 'expense'and transaction.amount<0\r\n"
+  			  		+ "AND YEAR(transaction.date) = YEAR(CURDATE())\r\n"
+  			  		+ "AND transaction.date between CONCAT('"+previousYear+"-"+String.format("%02d", previousMonth)+"', '-25')"
+  			  		+ "AND CONCAT('"+year+"-"+ String.format("%02d",month)+"', '-25')");
     			if (rs.next())
   			  {
   				  dblspent+=rs.getDouble(1);
@@ -247,7 +265,7 @@ public class Homepage extends Canvas implements Navigation, Design{
     			 
     		         Canvas spendingcanvas= new Canvas(1000,200); 
     		         GraphicsContext gc= spendingcanvas.getGraphicsContext2D();
-    		         Design.Layout(spendingcanvas, Design.GetX(25), Design.GetY(5), roothome); 
+    		         Design.Layout(spendingcanvas, Design.GetX(25), Design.GetY(5), roothome);
     		         gc.setStroke(Color.FLORALWHITE);
     		         gc.setFill(Color.FLORALWHITE);
     		         gc.fillRoundRect(Design.GetX(25), Design.GetY(7),Design.GetX(40), 40,40, 40);
@@ -275,12 +293,14 @@ public class Homepage extends Canvas implements Navigation, Design{
     			e.printStackTrace();
     		}
              
-             
+             int month=date.getMonthValue();
+			  int previousMonth = (month == 1) ? 12 : month - 1;  // If the month is January, the previous month is December
+			  int previousYear = (month == 1) ? year - 1 : year;
  		      Statement stm= Main.con.createStatement(); 
  			  //ResultSet rs=stm.executeQuery("Select category, sum(actualAmount) as amount from items where type='expense' group by category"); 
- 			  ResultSet rs=stm.executeQuery("SELECT \r\n"
- 			  		+ "    items.category, \r\n"
- 			  		+ "    SUM(transaction.amount) AS amount\r\n"
+ 			  ResultSet rs=stm.executeQuery("SELECT"
+ 			  		+ " items.category, \r\n"
+ 			  		+ " SUM(transaction.amount) AS amount\r\n"
  			  		+ "FROM \r\n"
  			  		+ "    transaction\r\n"
  			  		+ "JOIN \r\n"
@@ -288,7 +308,8 @@ public class Homepage extends Canvas implements Navigation, Design{
  			  		+ "WHERE \r\n"
  			  		+ "    items.itemtype = 'expense'\r\n"
  			  		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())\r\n"
- 			  		+ "    AND MONTH(transaction.date) = "+intdate+"\r\n"
+ 			  		+ "AND transaction.date between CONCAT('"+previousYear+"-"+String.format("%02d", previousMonth)+"', '-25')"
+  			  		+ "AND CONCAT('"+year+"-"+ String.format("%02d",month)+"', '-25')"
  			  		+ "GROUP BY \r\n"
  			  		+ "    items.category;\r\n"
  			  		+ "");
@@ -314,7 +335,8 @@ public class Homepage extends Canvas implements Navigation, Design{
  			  }
          cmbMonths.setPromptText(strMonths.get(intdate-1));
          cmbMonths.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
-             @Override
+        	 @Override
+             
              public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
                  // Event triggered when a new selection is made
                  int month=cmbMonths.getSelectionModel().getSelectedIndex();
@@ -323,9 +345,8 @@ public class Homepage extends Canvas implements Navigation, Design{
                 	 month=date.getMonthValue();
                  }
                  Populate(roothome,month);
+                 
              }
-         });
-         cmbMonths.valueProperty().addListener((observable, oldValue, newValue) -> {
          });
          
          
@@ -408,11 +429,102 @@ public class Homepage extends Canvas implements Navigation, Design{
 		return scene;
 	}
 	private void Populate(Group roothome,int month) {
+		LocalDate date=  LocalDate.now();
+        int year=date.getYear();
+        int previousMonth = (month == 1) ? 12 : month - 1;  // If the month is January, the previous month is December
+		int previousYear = (month == 1) ? year - 1 : year;
+        
+		//Last 3 transactions section
+        try { 
+		      Statement stm= Main.con.createStatement(); 
+			   rs=stm.executeQuery("SELECT  date AS transaction_date, amount AS transaction_amount, name AS item_name,\r\n"
+			  		                      + "category AS item_category, itemtype AS item_type FROM transaction JOIN items i\r\n"
+			  		                      + "ON transaction.itemid = i.iditems "
+			  		                    + "WHERE \r\n"
+			  				      		+ "    i.itemtype = 'expense' and transaction.amount<0 \r\n"
+			  				      		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())    -- Current year\r\n"
+			  				      		+ "AND transaction.date between CONCAT('"+previousYear+"-"+String.format("%02d", previousMonth)+"', '-25')"
+			  		  			  		+ "AND CONCAT('"+year+"-"+ String.format("%02d",month)+"', '-25') ORDER BY transaction_date DESC LIMIT 3"); 
+			  VBox transactionList = new VBox(10);
+		      transactionList.setPadding(new Insets(10));
+		      transactionList.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cccccc; -fx-border-radius: 10px; -fx-background-radius: 10px;");
+		      while (rs.next()) 
+			  {  
+				  String strdate=date.toString();
+				  double amount=rs.getDouble("transaction_amount");
+				  String name=rs.getString("item_name");
+				  String type=rs.getString("item_type");
+				  HBox box=History.createTransactionCard(strdate, type, name, amount);
+				  transactionList.getChildren().add(box);
+			  }
+			  ScrollPane scrollpane=new ScrollPane(transactionList);
+			  scrollpane.setLayoutX(Design.GetX(2));
+			  scrollpane.setLayoutY(Design.GetY(35));
+			  roothome.getChildren().set(5, scrollpane);
+			  scrollpane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+			  scrollpane.setMaxHeight(500);
+			  scrollpane.setMinWidth(250);
+			  scrollpane.setFitToWidth(true);
+		      scrollpane.setStyle(" border-radius:5px;");
+        }catch(SQLException ex) {
+        	ex.printStackTrace();
+        }
+        
+        
+        
+      //Section for Top category
+	        try { 
+			      Statement stm= Main.con.createStatement(); 
+			      ResultSet rs=stm.executeQuery("SELECT \r\n"
+			      		+ "    SUM(transaction.amount) AS amount, \r\n"
+			      		+ "    items.category \r\n"
+			      		+ "FROM \r\n"
+			      		+ "    transaction \r\n"
+			      		+ "JOIN \r\n"
+			      		+ "    items ON transaction.itemid = items.iditems \r\n"
+			      		+ "WHERE \r\n"
+			      		+ "    items.itemtype = 'expense' and transaction.amount<0 \r\n"
+			      		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())    -- Current year\r\n"
+			      		+ "AND transaction.date between CONCAT('"+previousYear+"-"+String.format("%02d", previousMonth)+"', '-25')"
+	  			  		+ "AND CONCAT('"+year+"-"+ String.format("%02d",month)+"', '-25')"
+			      		+ "GROUP BY \r\n"
+			      		+ "    items.category \r\n"
+			      		+ "ORDER BY \r\n"
+			      		+ "    amount \r\n"
+			      		+ "LIMIT 3;\r\n"); 
+				  VBox transactionList = new VBox(10);
+			      transactionList.setPadding(new Insets(10));
+			      transactionList.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cccccc; -fx-border-radius: 10px; -fx-background-radius: 10px;");
+				  while (rs.next()) 
+				  {  
+					  String strdate=date.toString();
+					  double amount=rs.getDouble("amount");
+					  String category=rs.getString("category");
+					  HBox box=History.createTransactionCard(strdate, "", category, amount);
+					  transactionList.getChildren().add(box);
+				  }
+				  ScrollPane scrollpane=new ScrollPane(transactionList);
+				  
+				  scrollpane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+				  roothome.getChildren().set(7, scrollpane);
+				  scrollpane.setLayoutX(Design.GetX(20));
+				  scrollpane.setLayoutY(Design.GetY(35));
+				  scrollpane.setMaxHeight(500);
+				  scrollpane.setMinWidth(250);
+				  scrollpane.setFitToWidth(true);
+			      scrollpane.setStyle(" border-radius:5px;");
+	        }catch(SQLException ex) {
+	        	ex.printStackTrace();
+	        }
+	        
+	        
+	        
 		//Spending graph
         try { 
         	//Calculating spending from db
             Label lblpercentagespending=new Label();
             try {
+  			  
    			stm= Main.con.createStatement();
    			  rs=stm.executeQuery("SELECT sum(setAmount) FROM items Where itemtype='expense'");
    			  double dblbudget=0;
@@ -430,7 +542,8 @@ public class Homepage extends Canvas implements Navigation, Design{
  			  		+ "WHERE \r\n"
  			  		+ "    items.itemtype = 'expense'\r\n"
  			  		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())\r\n"
- 			  		+ "    AND MONTH(transaction.date) = "+month+"\r\n"
+ 			  		+ "AND transaction.date between CONCAT('"+previousYear+"-"+String.format("%02d", previousMonth)+"', '-25')"
+  			  		+ "AND CONCAT('"+year+"-"+ String.format("%02d",month)+"', '-25')"
  			  		+ "");
    			if (rs.next())
  			  {
@@ -450,7 +563,7 @@ public class Homepage extends Canvas implements Navigation, Design{
    		         GraphicsContext gc= spendingcanvas.getGraphicsContext2D();
    		         spendingcanvas.setLayoutX(Design.GetX(25));
    		         spendingcanvas.setLayoutY(Design.GetY(5));
-   		         roothome.getChildren().set(7, spendingcanvas);
+   		         roothome.getChildren().set(9, spendingcanvas);
    		         gc.setStroke(Color.FLORALWHITE);
    		         gc.setFill(Color.FLORALWHITE);
    		         gc.fillRoundRect(Design.GetX(25), Design.GetY(7),Design.GetX(40), 40,40, 40);
@@ -468,7 +581,7 @@ public class Homepage extends Canvas implements Navigation, Design{
    		         lblpercentagespending.setFont(Design.ButtonFont());
    		         lblpercentagespending.setLayoutX(Design.GetX(65));
    		         lblpercentagespending.setLayoutY(Design.GetY(18)); 
-   		         roothome.getChildren().set(8, lblpercentagespending);
+   		         roothome.getChildren().set(10, lblpercentagespending);
    		       //Available balance handling
    		         Label lblavail= new Label();
    		         String strspent=Double.toString(dblremaining);
@@ -479,13 +592,11 @@ public class Homepage extends Canvas implements Navigation, Design{
    		         lblmoneyspent.setFont(Design.H2Font());
    		         lblmoneyspent.setLayoutX(Design.GetX(60));
    		         lblmoneyspent.setLayoutY(Design.GetY(6)); 
-   		         roothome.getChildren().set(9, lblmoneyspent);
+   		         roothome.getChildren().set(11, lblmoneyspent);
    		} catch (SQLException e) {
    			// TODO Auto-generated catch block
    			e.printStackTrace();
    		}
-            
-            
 		      Statement stm= Main.con.createStatement(); 
 			  ResultSet rs=stm.executeQuery("SELECT \r\n"
 			  		+ "    items.category, \r\n"
@@ -496,8 +607,8 @@ public class Homepage extends Canvas implements Navigation, Design{
 			  		+ "    items ON transaction.itemid = items.iditems\r\n"
 			  		+ "WHERE \r\n"
 			  		+ "    items.itemtype = 'expense'\r\n"
-			  		+ "    AND YEAR(transaction.date) = YEAR(CURDATE())\r\n"
-			  		+ "    AND MONTH(transaction.date) = "+month+"\r\n"
+			  		+ "AND transaction.date between CONCAT('"+previousYear+"-"+String.format("%02d", previousMonth)+"', '-25')"
+  			  		+ "AND CONCAT('"+year+"-"+ String.format("%02d",month)+"', '-25')"
 			  		+ "GROUP BY \r\n"
 			  		+ "    items.category;\r\n"
 			  		+ "");
@@ -515,7 +626,7 @@ public class Homepage extends Canvas implements Navigation, Design{
 			  piechart.setTitle("Spending");
 			  piechart.setLayoutX(Design.GetX(50));
 			  piechart.setLayoutY(Design.GetY(38));
-			  roothome.getChildren().set(10, piechart);
+			  roothome.getChildren().set(12, piechart);
 			 
 			  }
 			  catch (SQLException e) 
