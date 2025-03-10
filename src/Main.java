@@ -29,23 +29,18 @@ public class Main extends Application {
 		try {
 			//"jdbc:mysql://localhost:3306/budgetdb","root","Qhinebe13."
 			
-			if (dbUrl != null) {
-                String[] parts = dbUrl.split("[:@/]");
-                String username = parts[1].substring(2); // Remove "//"
-                String password = parts[2];
-                String host = parts[3];
-                String port = parts[4];
-                String dbName = parts[5];
-
-                String url = "jdbc:mysql://" + host + ":" + port + "/" + dbName;
-
-                con = DriverManager.getConnection(url, username, password);
-                System.out.println("Connected to JawsDB!");
-            }
-			else {
-				System.out.println("URL not found");
-			}
-		//con=  DriverManager.getConnection("jdbc:mysql://localhost:3306/budgetdb","root","Qhinebe13.");
+			/*
+			 * if (dbUrl != null) { String[] parts = dbUrl.split("[:@/]"); String username =
+			 * parts[1].substring(2); // Remove "//" String password = parts[2]; String host
+			 * = parts[3]; String port = parts[4]; String dbName = parts[5];
+			 * 
+			 * String url = "jdbc:mysql://" + host + ":" + port + "/" + dbName;
+			 * 
+			 * con = DriverManager.getConnection(url, username, password);
+			 * System.out.println("Connected to JawsDB!"); } else {
+			 * System.out.println("URL not found"); }
+			 */
+		con=  DriverManager.getConnection("jdbc:mysql://localhost:3306/budgetdb","root","Qhinebe13.");
 			
 		} catch ( SQLException e) {
 			// TODO Auto-generated catch block
